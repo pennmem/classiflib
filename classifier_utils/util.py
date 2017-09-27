@@ -6,10 +6,15 @@ def git_revision():
     elsewhere, return 'unknown'.
 
     """
+    p = Popen('git ls-files'.split(), stdout=PIPE, stderr=PIPE)
+    stdout, _ = p.communicate()
+    if not len(stdout):  # we're not in a git repository
+        return 'unknown'
+
     p = Popen('git rev-parse HEAD'.split(), stdout=PIPE, stderr=PIPE)
     stdout, _ = p.communicate()
     if len(stdout) > 0:
-        return stdout.decode()
+        return stdout.decode().strip()
     else:
         return 'unknown'
 
