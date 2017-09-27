@@ -1,9 +1,10 @@
 import os.path as osp
 
 import tables
-from tables import IsDescription, Int32Col, StringCol, StringAtom
+from tables import IsDescription, Int32Col, StringCol
 from sklearn import __version__ as sklearn_version
 
+from . import __version__
 from .classifier import CLASSIFIER_VERSION
 
 
@@ -47,13 +48,13 @@ class HDF5Serializer(BaseSerializer):
                            expectedrows=256)
 
         group = hfile.create_group('/', 'classifier_info')
-        hfile.create_array(group, 'classname', obj=self.classname.encode())
-        hfile.create_array(group, 'sklearn_version', obj=sklearn_version.encode())
-        hfile.create_array(group, 'classifier_version', obj=CLASSIFIER_VERSION.encode())
-
-        group = hfile.create_group('/', 'serialization')
-        hfile.create_array(group, 'serialization_version', obj=self.__version.encode())
-        # hfile.create_array(group, 'commit_hash')
+        addstring = lambda name, value: hfile.create_array(group, name, obj=str.encode(value))
+        addstring('classname', self.classname)
+        addstring('sklearn_version', sklearn_version)
+        addstring('classifier_version', CLASSIFIER_VERSION)
+        addstring('classifier_utils_version', __version__)
+        addstring('serialization_version', self.__version)
+        addstring('commit_hash', '???')
 
     def serialize(self, filename, overwrite=True):
         """Serialize the data to the specified location."""
