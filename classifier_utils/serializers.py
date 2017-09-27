@@ -6,6 +6,7 @@ from sklearn import __version__ as sklearn_version
 
 from . import __version__
 from .classifier import CLASSIFIER_VERSION
+from .util import git_revision
 
 
 class Pair(IsDescription):
@@ -54,7 +55,7 @@ class HDF5Serializer(BaseSerializer):
         addstring('classifier_version', CLASSIFIER_VERSION)
         addstring('classifier_utils_version', __version__)
         addstring('serialization_version', self.__version)
-        addstring('commit_hash', '???')
+        addstring('commit_hash', git_revision())
 
     def serialize(self, filename, overwrite=True):
         """Serialize the data to the specified location."""
