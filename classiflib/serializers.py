@@ -17,10 +17,11 @@ class BaseSerializer(object):
     ----------
     classifier : object
         Trained classifier instance
-    pairs : list
+    pairs : list or np.recarray
         A list containing contact numbers and labels of the pairs used by the
         classifier. Each element of the list is a tuple of the following form:
-        ``(contact1: int, contact2: int, label1: str, label2: str)``
+        ``(contact1: int, contact2: int, label1: str, label2: str)``. Also can
+        be a recarray with the dtype ``.dtypes.pairs``.
 
     """
     def __init__(self, classifier, pairs):
@@ -30,6 +31,8 @@ class BaseSerializer(object):
     @staticmethod
     def _validate_pairs(pairs):
         for row in pairs:
+            if isinstance(row, np.record):
+                break
             assert isinstance(row[0], int)
             assert isinstance(row[1], int)
             assert isinstance(row[2], str)
@@ -59,7 +62,6 @@ class HDF5Serializer(BaseSerializer):
 
         # Populate pair info
         for i, pair in enumerate(self.pairs):
-            print(pair)
             row = hfile.root.pairs.row
             row['id'] = i
             row['contact1'] = pair[0]
