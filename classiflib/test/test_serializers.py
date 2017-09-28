@@ -58,6 +58,8 @@ class TestPickleSerializer:
         assert isinstance(classifier, DummyClassifier)
         assert hasattr(classifier, 'pairs')
         assert hasattr(classifier, 'versions')
+        assert hasattr(classifier, 'roc')
+        assert hasattr(classifier, 'auc')
 
 
 class TestHDF5Serializer:
@@ -111,6 +113,17 @@ class TestHDF5Serializer:
                 assert row['contact2'] == i + 1
                 assert row['label1'] == 'A{}'.format(i).encode()
                 assert row['label2'] == 'A{}'.format(i + 1).encode()
+
+    def test_add_classifier(self):
+        roc = np.array([np.linspace(0, 1, 100), np.linspace(0, 1, 100)])
+        serializer = HDF5Serializer(DummyClassifier(), single_pair(),
+                                    roc=roc, auc=0.5)
+
+        with self.hfile() as hfile:
+            serializer.add_classifier(hfile)
+
+        with self.hopen() as hfile:
+            assert hfile.root.classifier.roc.shape == (2, 100)
 
     @pytest.mark.parametrize('dtype', ['list', 'recarray'])
     @pytest.mark.parametrize('overwrite', [True, False])

@@ -26,6 +26,12 @@ class BaseSerializer(object):
         classifier. Each element of the list is a tuple of the following form:
         ``(contact1: int, contact2: int, label1: str, label2: str)``. Also can
         be a recarray with the dtype ``.dtypes.pairs``.
+    roc : np.ndarray
+        ROC curve data
+    auc : float
+        Computed AUC
+    subject : str
+        Subject ID
 
     Notes
     -----
@@ -38,12 +44,15 @@ class BaseSerializer(object):
         LogisticRegression,
     )
 
-    def __init__(self, classifier, pairs, subject="undefined"):
+    def __init__(self, classifier, pairs, roc=None, auc=None,
+                 subject="undefined"):
         # Indicates if this was generated from a legacy pickle file or not
         self._from_legacy_format = False
 
         self.classifier = self._validate_classifier(classifier)
         self.pairs = self._validate_pairs(pairs)
+        self.roc = roc if roc is not None else np.zeros((2, 1))
+        self.auc = auc or 0.
         self.subject = subject
 
     @classmethod
@@ -148,6 +157,8 @@ class PickleSerializer(BaseSerializer):
             'serialization': self._version,
             'sklearn': sklearn_version
         })
+        setattr(self.classifier, 'roc', self.roc)
+        setattr(self.classifier, 'auc', self.auc)
 
         joblib.dump(self.classifier, outfile)
 
@@ -205,6 +216,9 @@ class HDF5Serializer(BaseSerializer):
         addstring = partial(self.addstring, hfile, info_group)
         addstring('classname', self.classname)
         addstring('subject', self.subject)
+
+        hfile.create_array(cgroup, 'roc', obj=self.roc)
+        hfile.create_array(cgroup, 'auc', obj=self.auc)
 
         # params = self.classifier.get_params()
         # params_dtype = [(key, np.dtype(value)) for key, value in params.items()]
