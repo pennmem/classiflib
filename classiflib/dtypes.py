@@ -29,4 +29,4 @@ def with_id(dtype, typestr='i8', name='id'):
 
     """
     types = [(name, typestr)]
-    return types + [(key, value[0].str) for key, value in dtype.fields.items()]
+    return np.dtype(types + [(key, value[0].str) for key, value in dtype.fields.items()])

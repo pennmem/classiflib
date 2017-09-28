@@ -17,9 +17,10 @@ class BaseSerializer(object):
     ----------
     classifier : object
         Trained classifier instance
-    pairs : np.recarray
-        A recarray containing contact numbers and labels of the pairs used by
-        the classifier. See `.dtypes.pairs`.
+    pairs : list
+        A list containing contact numbers and labels of the pairs used by the
+        classifier. Each element of the list is a tuple of the following form:
+        ``(contact1: int, contact2: int, label1: str, label2: str)``
 
     """
     def __init__(self, classifier, pairs):
