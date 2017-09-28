@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Classifier Utils documentation build configuration file, created by
+# classiflib documentation build configuration file, created by
 # sphinx-quickstart on Mon Sep 11 11:41:00 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -53,7 +53,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Classifier Utils'
+project = 'classiflib'
 copyright = '2017'
 author = 'Penn Computational Memory Lab'
 
@@ -62,7 +62,7 @@ author = 'Penn Computational Memory Lab'
 # built documents.
 #
 # The short X.Y version.
-from classifier_utils import version_info
+from classiflib import version_info
 version = '.'.join(version_info[:2])
 # The full version, including alpha/beta/rc tags.
 release = '.'.join(version_info)
@@ -108,7 +108,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'classifier_utilsdoc'
+htmlhelp_basename = 'classiflib_doc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -135,7 +135,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'classifier_utils.tex', 'classifier_utils Documentation',
+    (master_doc, 'classiflib.tex', 'classiflib Documentation',
      'Penn Computational Memory Lab', 'manual'),
 ]
 
@@ -145,7 +145,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'classifier_utils', 'classifier_utils Documentation',
+    (master_doc, 'classiflib', 'classiflib Documentation',
      [author], 1)
 ]
 
@@ -156,8 +156,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'classifier_utils', 'classifier_utils Documentation',
-     author, 'classifier_utils', 'One line description of project.',
+    (master_doc, 'classiflib', 'classiflib Documentation',
+     author, 'classiflib', 'One line description of project.',
      'Miscellaneous'),
 ]
 

@@ -16,16 +16,16 @@ requirements = []
 setup_requirements = []
 
 setup(
-    name='classifier_utils',
+    name='classiflib',
     version='0.1.0',
     description="Memory state classifier utilities",
     long_description=readme + '\n\n' + history,
     author="Penn Computational Memory Lab",
-    url='https://github.com/pennmem/classifier_utils',
-    packages=find_packages(include=['classifier_utils']),
+    url='https://github.com/pennmem/classiflib',
+    packages=find_packages(include=['classiflib']),
     include_package_data=True,
     install_requires=requirements,
     zip_safe=False,
-    keywords='classifier_utils',
+    keywords='classiflib',
     setup_requires=setup_requirements,
 )

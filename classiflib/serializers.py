@@ -1,32 +1,39 @@
 import os.path as osp
 
+import numpy as np
 import tables
-from tables import IsDescription, Int32Col, StringCol
 from sklearn import __version__ as sklearn_version
 
-from . import __version__
+from . import __version__, dtypes
+from .dtypes import with_id
 from .classifier import CLASSIFIER_VERSION
 from .util import git_revision
 
 
-class Pair(IsDescription):
-    """Schema for a pair used by a classifier."""
-    id = Int32Col()
-    contact1 = Int32Col()
-    contact2 = Int32Col()
-    label1 = StringCol(itemsize=256)
-    label2 = StringCol(itemsize=256)
-
-
-class Weight(IsDescription):
-    """Classifier weights."""
-    pair_id = Int32Col()
-
-
 class BaseSerializer(object):
-    """Base classifier serializer class."""
-    def __init__(self, classifier):
+    """Base classifier serializer class.
+
+    Parameters
+    ----------
+    classifier : object
+        Trained classifier instance
+    pairs : np.recarray
+        A recarray containing contact numbers and labels of the pairs used by
+        the classifier. See `.dtypes.pairs`.
+
+    """
+    def __init__(self, classifier, pairs):
         self.classifier = classifier
+        self.pairs = self._validate_pairs(pairs)
+
+    @staticmethod
+    def _validate_pairs(pairs):
+        for row in pairs:
+            assert isinstance(row[0], int)
+            assert isinstance(row[1], int)
+            assert isinstance(row[2], str)
+            assert isinstance(row[3], str)
+        return pairs
 
     @property
     def classname(self):
@@ -43,11 +50,24 @@ class HDF5Serializer(BaseSerializer):
     __version = "1.0.0"
 
     def _create_hdf5(self, hfile):
-        hfile.create_table('/', 'pairs', Pair, title="Bipolar pairs",
-                           expectedrows=256)
-        hfile.create_table('/', 'weights', Weight, title='Classifier weights',
-                           expectedrows=256)
+        # Create empty tables
+        hfile.create_table('/', 'pairs', with_id(dtypes.pairs),
+                           title="Bipolar pairs", expectedrows=256)
+        # hfile.create_table('/', 'weights', Weight, title='Classifier weights',
+        #                    expectedrows=256)
 
+        # Populate pair info
+        for i, pair in enumerate(self.pairs):
+            print(pair)
+            row = hfile.root.pairs.row
+            row['id'] = i
+            row['contact1'] = pair[0]
+            row['contact2'] = pair[1]
+            row['label1'] = pair[2]
+            row['label2'] = pair[3]
+            row.append()
+
+        # Add metadata
         group = hfile.create_group('/', 'classifier_info')
         addstring = lambda name, value: hfile.create_array(group, name, obj=str.encode(value))
         addstring('classname', self.classname)
