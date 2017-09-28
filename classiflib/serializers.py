@@ -128,12 +128,27 @@ class BaseSerializer(object):
 
 
 class PickleSerializer(BaseSerializer):
-    """A thin wrapper around joblib's pickling (legacy format)."""
+    """A thin wrapper around joblib's pickling (legacy format). Which also adds
+    additional attributes:
+
+      * ``pairs`` - the pairs as defined on instantiation
+      * ``versions`` - a dict with versions
+
+    """
     _version = "1.0.0"
 
     def serialize_impl(self, outfile):
         msg = "Pickling could potentially be harmful; consider another format"
         warn(msg, DeprecationWarning)
+
+        setattr(self.classifier, 'pairs', self.pairs)
+        setattr(self.classifier, 'versions', {
+            'classifier': CLASSIFIER_VERSION,
+            'classiflib': __version__,
+            'serialization': self._version,
+            'sklearn': sklearn_version
+        })
+
         joblib.dump(self.classifier, outfile)
 
 
@@ -182,6 +197,7 @@ class HDF5Serializer(BaseSerializer):
     def add_classifier(self, hfile):
         """Create classifier group and add data."""
         cgroup = hfile.create_group('/', 'classifier')
+
         # hfile.create_table(cgroup, 'weights', Weight, title='Classifier weights',
         #                    expectedrows=256)
 
@@ -189,6 +205,11 @@ class HDF5Serializer(BaseSerializer):
         addstring = partial(self.addstring, hfile, info_group)
         addstring('classname', self.classname)
         addstring('subject', self.subject)
+
+        # params = self.classifier.get_params()
+        # params_dtype = [(key, np.dtype(value)) for key, value in params.items()]
+        # hfile.create_table('/classifier', 'params', params_dtype,
+        #                    title="classifier creation parameters")
 
     def _create_hdf5(self, filename):
         with tables.open_file(filename, 'w') as hfile:

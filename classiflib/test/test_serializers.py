@@ -6,8 +6,8 @@ import numpy as np
 import tables
 
 from sklearn import __version__ as sklearn_version
-from sklearn.base import BaseEstimator
 from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.externals import joblib
 
 from classiflib import dtypes, __version__
 from classiflib.classifier import CLASSIFIER_VERSION
@@ -49,8 +49,15 @@ class TestBaseSerializer:
 class TestPickleSerializer:
     def test_serialize(self, tmpdir):
         serializer = PickleSerializer(DummyClassifier(), single_pair())
+
+        outfile = tmpdir.join('out.pkl').strpath
         with pytest.warns(DeprecationWarning):
-            serializer.serialize(tmpdir.join('out.pkl').strpath)
+            serializer.serialize(outfile)
+
+        classifier = joblib.load(outfile)
+        assert isinstance(classifier, DummyClassifier)
+        assert hasattr(classifier, 'pairs')
+        assert hasattr(classifier, 'versions')
 
 
 class TestHDF5Serializer:
