@@ -78,8 +78,33 @@ class BaseSerializer(object):
             raise NotImplementedError("Serializers must contain a _version attribute")
         return "_".join([self.__class__.__name__, self._version])
 
-    def serialize(self, *args, **kwargs):
+    def serialize_impl(self, outfile):
+        """The method which implements the actual serialization. Must be defined
+        in child classes.
+
+        Parameters
+        ----------
+        outfile : str or file-like
+
+        """
         raise NotImplementedError
+
+    def serialize(self, outfile, overwrite=True):
+        """Serialize the data to the specified location. Child classes should
+        instead implement the :meth:`serialize_impl` method which takes only the
+        ``outfile`` parameter.
+
+        Parameters
+        ----------
+        outfile : str or file-like
+        overwrite : bool
+
+        """
+        if isinstance(outfile, str):
+            if osp.exists(outfile) and not overwrite:
+                raise RuntimeError("{} already exists".format(outfile))
+
+        self.serialize_impl(outfile)
 
 
 class HDF5Serializer(BaseSerializer):
@@ -142,8 +167,6 @@ class HDF5Serializer(BaseSerializer):
             self.add_pairs(hfile)
             self.add_classifier(hfile)
 
-    def serialize(self, filename, overwrite=True):
-        """Serialize the data to the specified location."""
-        if osp.exists(filename) and not overwrite:
-            raise RuntimeError("{} already exists".format(filename))
-        self._create_hdf5(filename)
+    def serialize_impl(self, outfile, overwrite=True):
+        assert isinstance(outfile, str), "HDF5Serializer only supports writing to actual files"
+        self._create_hdf5(outfile)
