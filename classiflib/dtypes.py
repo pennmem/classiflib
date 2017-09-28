@@ -1,4 +1,4 @@
-"""Defines resuable dtypes for recarrays."""
+"""Defines reusable dtypes for recarrays and HDF5 tables."""
 
 import numpy as np
 
@@ -12,7 +12,7 @@ pairs = np.dtype([
 
 
 def with_id(dtype, typestr='i8', name='id'):
-    """Insert an ID field do the passed dtype.
+    """Inserts an ID field to the passed dtype.
 
     Parameters
     ----------
