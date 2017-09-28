@@ -1,9 +1,11 @@
 import os.path as osp
 from functools import partial
+from warnings import warn
 
 import numpy as np
 import tables
 from sklearn import __version__ as sklearn_version
+from sklearn.linear_model import LogisticRegression
 from sklearn.externals import joblib
 
 from . import __version__, dtypes
@@ -17,7 +19,7 @@ class BaseSerializer(object):
 
     Parameters
     ----------
-    classifier : object
+    classifier : sklearn.base.BaseEstimator
         Trained classifier instance
     pairs : list or np.recarray
         A list containing contact numbers and labels of the pairs used by the
@@ -25,18 +27,28 @@ class BaseSerializer(object):
         ``(contact1: int, contact2: int, label1: str, label2: str)``. Also can
         be a recarray with the dtype ``.dtypes.pairs``.
 
+    Notes
+    -----
+    Only :class:`LogisticRegression` classifiers are supported at this time.
+    This is due to wanting to ensure maximum floating point precision is
+    preserved.
+
     """
+    SUPPORTED_CLASSIFIERS = (
+        LogisticRegression,
+    )
+
     def __init__(self, classifier, pairs, subject="undefined"):
         # Indicates if this was generated from a legacy pickle file or not
         self._from_legacy_format = False
 
-        self.classifier = classifier
+        self.classifier = self._validate_classifier(classifier)
         self.pairs = self._validate_pairs(pairs)
         self.subject = subject
 
     @classmethod
     def from_pickle(cls, pickle_file, pairs):
-        """Convert the legacy pickle format to modern formats.
+        """Convert the legacy pickle format to other formats.
 
         Parameters
         ----------
@@ -50,6 +62,14 @@ class BaseSerializer(object):
         serializer = cls(classifier, pairs)
         serializer._from_legacy_format = True
         return serializer
+
+    @staticmethod
+    def _validate_classifier(classifier):
+        allowed = BaseSerializer.SUPPORTED_CLASSIFIERS
+        allowed_str = [c.__name__ for c in allowed]
+        assert isinstance(classifier, allowed), \
+            "Only the following are supported: " + "\n".join(allowed_str)
+        return classifier
 
     @staticmethod
     def _validate_pairs(pairs):
@@ -105,6 +125,16 @@ class BaseSerializer(object):
                 raise RuntimeError("{} already exists".format(outfile))
 
         self.serialize_impl(outfile)
+
+
+class PickleSerializer(BaseSerializer):
+    """A thin wrapper around joblib's pickling (legacy format)."""
+    _version = "1.0.0"
+
+    def serialize_impl(self, outfile):
+        msg = "Pickling could potentially be harmful; consider another format"
+        warn(msg, DeprecationWarning)
+        joblib.dump(self.classifier, outfile)
 
 
 class HDF5Serializer(BaseSerializer):

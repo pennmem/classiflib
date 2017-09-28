@@ -4,11 +4,14 @@ from io import BytesIO
 import pytest
 import numpy as np
 import tables
+
 from sklearn import __version__ as sklearn_version
+from sklearn.base import BaseEstimator
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 
 from classiflib import dtypes, __version__
 from classiflib.classifier import CLASSIFIER_VERSION
-from classiflib.serializers import BaseSerializer, HDF5Serializer
+from classiflib.serializers import BaseSerializer, PickleSerializer, HDF5Serializer
 
 
 @pytest.fixture
@@ -16,13 +19,23 @@ def single_pair():
     return [(0, 1, 'A0', 'A1')]
 
 
-class DummyClassifier(object):
+class DummyClassifier(LogisticRegression):
     pass
 
 
 class TestBaseSerializer:
     def setup_method(self, method):
         self.serializer = BaseSerializer(DummyClassifier(), [(0, 1, 'A0', 'A1')])
+
+    def test_classifier_validation(self):
+        class BadClassifier(object):
+            pass
+
+        with pytest.raises(AssertionError):
+            BaseSerializer(BadClassifier(), single_pair())
+
+        with pytest.raises(AssertionError):
+            BaseSerializer(SGDClassifier, single_pair())
 
     def test_version(self):
         with pytest.raises(NotImplementedError):
@@ -31,6 +44,13 @@ class TestBaseSerializer:
     def test_serialize(self):
         with pytest.raises(NotImplementedError):
             self.serializer.serialize("dummy.txt")
+
+
+class TestPickleSerializer:
+    def test_serialize(self, tmpdir):
+        serializer = PickleSerializer(DummyClassifier(), single_pair())
+        with pytest.warns(DeprecationWarning):
+            serializer.serialize(tmpdir.join('out.pkl').strpath)
 
 
 class TestHDF5Serializer:
