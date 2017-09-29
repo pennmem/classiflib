@@ -4,6 +4,7 @@ from io import BytesIO
 import pytest
 import numpy as np
 import tables
+import h5py
 
 from sklearn import __version__ as sklearn_version
 from sklearn.linear_model import LogisticRegression, SGDClassifier
@@ -70,12 +71,12 @@ class TestHDF5Serializer:
 
     @contextmanager
     def hfile(self):
-        with tables.open_file('out.h5', 'w') as hfile:
+        with h5py.File('out.h5', 'w') as hfile:
             yield hfile
 
     @contextmanager
     def hopen(self):
-        with tables.open_file('out.h5', 'r') as hfile:
+        with h5py.File('out.h5', 'r') as hfile:
             yield hfile
 
     def test_add_attributes(self):
@@ -83,18 +84,18 @@ class TestHDF5Serializer:
             self.serializer.add_attributes(hfile)
 
         with self.hopen() as hfile:
-            assert len(hfile.get_node_attr('/', 'commit_hash')) > 1
+            assert len(hfile.attrs['commit_hash']) > 1
 
     def test_add_versions(self):
         with self.hfile() as hfile:
             self.serializer.add_versions(hfile)
 
         with self.hopen() as hfile:
-            vgroup = hfile.root.versions
-            assert vgroup.sklearn.read() == sklearn_version.encode()
-            assert vgroup.classiflib.read() == __version__.encode()
-            assert vgroup.classifier.read() == CLASSIFIER_VERSION.encode()
-            assert vgroup.serialization.read() == ("HDF5Serializer_" + HDF5Serializer._version).encode()
+            vgroup = hfile['/versions']
+            assert vgroup['sklearn'][0] == sklearn_version.encode()
+            assert vgroup['classiflib'][0] == __version__.encode()
+            assert vgroup['classifier'][0] == CLASSIFIER_VERSION.encode()
+            assert vgroup['serialization'][0] == ("HDF5Serializer_" + HDF5Serializer._version).encode()
 
     def test_add_pairs(self):
         pairs = [
@@ -107,7 +108,7 @@ class TestHDF5Serializer:
             serializer.add_pairs(hfile)
 
         with self.hopen() as hfile:
-            for i, row in enumerate(hfile.get_node('/', 'pairs')):
+            for i, row in enumerate(hfile['/pairs']):
                 assert row['id'] == i
                 assert row['contact1'] == i
                 assert row['contact2'] == i + 1
@@ -123,7 +124,8 @@ class TestHDF5Serializer:
             serializer.add_classifier(hfile)
 
         with self.hopen() as hfile:
-            assert hfile.root.classifier.roc.shape == (2, 100)
+            assert hfile['/classifier/roc'].shape == (2, 100)
+            assert hfile['/classifier/auc'][0] == 0.5
 
     @pytest.mark.parametrize('dtype', ['list', 'recarray'])
     @pytest.mark.parametrize('overwrite', [True, False])

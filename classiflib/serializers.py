@@ -3,7 +3,7 @@ from functools import partial
 from warnings import warn
 
 import numpy as np
-import tables
+import h5py
 from sklearn import __version__ as sklearn_version
 from sklearn.linear_model import LogisticRegression
 from sklearn.externals import joblib
@@ -82,14 +82,29 @@ class BaseSerializer(object):
 
     @staticmethod
     def _validate_pairs(pairs):
+        """Validate pairs and convert to recarray if not already."""
+        if isinstance(pairs, np.recarray):
+            assert pairs.dtype == dtypes.pairs
+            return pairs
+
         for row in pairs:
-            if isinstance(row, np.record):
-                break
             assert isinstance(row[0], int)
             assert isinstance(row[1], int)
             assert isinstance(row[2], str)
             assert isinstance(row[3], str)
-        return pairs
+
+        dtype = with_id(dtypes.pairs)
+        size = len(pairs)
+        rpairs = np.recarray((size,), dtype=dtype)
+        rpairs.id = np.arange(size, dtype='<i8')
+
+        for i in range(size):
+            rpairs.contact1[i] = pairs[i][0]
+            rpairs.contact2[i] = pairs[i][1]
+            rpairs.label1[i] = pairs[i][2]
+            rpairs.label2[i] = pairs[i][3]
+
+        return rpairs
 
     @property
     def classname(self):
@@ -167,12 +182,13 @@ class HDF5Serializer(BaseSerializer):
     """Utility class to serialize or deserialize a classifier using HDF5."""
     _version = "1.0.0"
 
-    def addstring(self, hfile, group, name, value):
+    def addstring(self, group, name, value, dtype='|S64'):
         """Base function for adding a string to a group; will be partialed to
         only have to specify the group once.
 
         """
-        hfile.create_array(group, name, obj=str.encode(value))
+        string = value if not hasattr(value, 'encode') else value.encode()
+        group.create_dataset(name, data=[string], dtype=dtype)
 
     def add_attributes(self, hfile):
         """Adds root node attributes:
@@ -181,44 +197,37 @@ class HDF5Serializer(BaseSerializer):
           repo
 
         """
-        hfile.set_node_attr('/', 'commit_hash', git_revision())
+        hfile.attrs['commit_hash'] = git_revision()
 
     def add_versions(self, hfile):
         """Create version number node and add relevant versions."""
-        group = hfile.create_group('/', 'versions')
-        addstring = partial(self.addstring, hfile, group)
+        group = hfile.create_group('/versions')
+        addstring = partial(self.addstring, group)
+        classifier_version = CLASSIFIER_VERSION if not self._from_legacy_format else "1.0.0"
+
         addstring('sklearn', sklearn_version)
         addstring('classiflib', __version__)
-        addstring('classifier', CLASSIFIER_VERSION if not self._from_legacy_format else "1.0.0")
+        addstring('classifier', classifier_version)
         addstring('serialization', self.version)
 
     def add_pairs(self, hfile):
         """Create and populate pairs table."""
-        hfile.create_table('/', 'pairs', with_id(dtypes.pairs),
-                           title="Bipolar pairs", expectedrows=256)
-        for i, pair in enumerate(self.pairs):
-            row = hfile.root.pairs.row
-            row['id'] = i
-            row['contact1'] = pair[0]
-            row['contact2'] = pair[1]
-            row['label1'] = pair[2]
-            row['label2'] = pair[3]
-            row.append()
+        hfile.create_dataset('/pairs', data=self.pairs, chunks=True)
 
     def add_classifier(self, hfile):
         """Create classifier group and add data."""
-        cgroup = hfile.create_group('/', 'classifier')
+        cgroup = hfile.create_group('/classifier')
 
         # hfile.create_table(cgroup, 'weights', Weight, title='Classifier weights',
         #                    expectedrows=256)
 
-        info_group = hfile.create_group(cgroup, 'info')
-        addstring = partial(self.addstring, hfile, info_group)
+        info_group = cgroup.create_group('info')
+        addstring = partial(self.addstring, info_group)
         addstring('classname', self.classname)
         addstring('subject', self.subject)
 
-        hfile.create_array(cgroup, 'roc', obj=self.roc)
-        hfile.create_array(cgroup, 'auc', obj=self.auc)
+        cgroup.create_dataset('roc', data=self.roc, chunks=True)
+        cgroup.create_dataset('auc', data=[self.auc], chunks=True)
 
         # params = self.classifier.get_params()
         # params_dtype = [(key, np.dtype(value)) for key, value in params.items()]
@@ -226,7 +235,7 @@ class HDF5Serializer(BaseSerializer):
         #                    title="classifier creation parameters")
 
     def _create_hdf5(self, filename):
-        with tables.open_file(filename, 'w') as hfile:
+        with h5py.File(filename, 'w') as hfile:
             self.add_attributes(hfile)
             self.add_versions(hfile)
             self.add_pairs(hfile)

@@ -4,10 +4,10 @@ import numpy as np
 
 # Used for pair info
 pairs = np.dtype([
-    ('contact1', 'i8'),
-    ('contact2', 'i8'),
-    ('label1', 'S256'),
-    ('label2', 'S256')
+    ('contact1', '<i8'),
+    ('contact2', '<i8'),
+    ('label1', '|S256'),
+    ('label2', '|S256')
 ])
 
 
