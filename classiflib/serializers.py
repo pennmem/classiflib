@@ -11,6 +11,7 @@ from sklearn.externals import joblib
 from . import __version__, dtypes
 from .dtypes import with_id
 from .classifier import CLASSIFIER_VERSION
+from .container import ClassifierContainer
 from .util import git_revision
 
 
@@ -150,32 +151,59 @@ class BaseSerializer(object):
 
         self.serialize_impl(outfile)
 
+    def deserialize(self, infile):
+        """Deserialize and return the classifier and associated data.
+
+        Parameters
+        ----------
+        infile : str
+            path to serialized classifier
+
+        Returns
+        -------
+        container : ClassifierContainer
+
+        Notes
+        -----
+        This method must be implemented and return a :class:`ClassifierContainer`
+        object.
+
+        """
+        raise NotImplementedError
+
 
 class PickleSerializer(BaseSerializer):
-    """A thin wrapper around joblib's pickling (legacy format). Which also adds
-    additional attributes:
-
-      * ``pairs`` - the pairs as defined on instantiation
-      * ``versions`` - a dict with versions
+    """Uses :mod:`sklearn.externals.joblib` to serialize a :class:`ClassifierContainer`
+    as a pickle.
 
     """
     _version = "1.0.0"
 
     def serialize_impl(self, outfile):
-        msg = "Pickling could potentially be harmful; consider another format"
-        warn(msg, DeprecationWarning)
+        container = ClassifierContainer(
+            classifier=self.classifier,
+            classifier_info={
+                'classname': self.classname,
+                'subject': self.subject,
+                'roc': self.roc,
+                'auc': self.auc,
+            },
+            weights=None,  # FIXME
+            intercept=None,  # FIXME
+            mean_powers=None,  # FIXME
+            pairs=self.pairs,
+            versions={
+                'classifier': CLASSIFIER_VERSION,
+                'classiflib': __version__,
+                'serialization': self._version,
+                'sklearn': sklearn_version
+            }
+        )
 
-        setattr(self.classifier, 'pairs', self.pairs)
-        setattr(self.classifier, 'versions', {
-            'classifier': CLASSIFIER_VERSION,
-            'classiflib': __version__,
-            'serialization': self._version,
-            'sklearn': sklearn_version
-        })
-        setattr(self.classifier, 'roc', self.roc)
-        setattr(self.classifier, 'auc', self.auc)
+        joblib.dump(container, outfile)
 
-        joblib.dump(self.classifier, outfile)
+    def deserialize(self, infile):
+        return joblib.load(infile)
 
 
 class HDF5Serializer(BaseSerializer):

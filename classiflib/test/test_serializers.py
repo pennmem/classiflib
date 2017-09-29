@@ -52,15 +52,11 @@ class TestPickleSerializer:
         serializer = PickleSerializer(DummyClassifier(), single_pair())
 
         outfile = tmpdir.join('out.pkl').strpath
-        with pytest.warns(DeprecationWarning):
-            serializer.serialize(outfile)
+        serializer.serialize(outfile)
 
-        classifier = joblib.load(outfile)
+        container = joblib.load(outfile)
+        classifier = container.classifier
         assert isinstance(classifier, DummyClassifier)
-        assert hasattr(classifier, 'pairs')
-        assert hasattr(classifier, 'versions')
-        assert hasattr(classifier, 'roc')
-        assert hasattr(classifier, 'auc')
 
 
 class TestHDF5Serializer:
