@@ -22,6 +22,7 @@ def single_pair():
 
 class DummyClassifier(LogisticRegression):
     coefs_ = np.random.random((1, 8 * 1))
+    intercept_ = 0.
 
 
 class TestBaseSerializer:
@@ -66,6 +67,8 @@ class TestPickleSerializer:
         container = joblib.load(outfile)
         classifier = container.classifier
         assert isinstance(classifier, DummyClassifier)
+
+        assert container.intercept == 0.
 
         weights = container.weights
         assert len(weights) == 8
@@ -150,6 +153,9 @@ class TestHDF5Serializer:
 
             weights = hfile['/classifier/weights']
             assert weights.shape == (16,)
+
+            intercept = hfile['/classifier/intercept'][0]
+            assert intercept == 0.
 
     @pytest.mark.parametrize('dtype', ['list', 'recarray'])
     @pytest.mark.parametrize('overwrite', [True, False])

@@ -210,7 +210,7 @@ class PickleSerializer(BaseSerializer):
                 'params': json.dumps(self.params),
             },
             weights=self.weights,
-            intercept=None,  # FIXME
+            intercept=self.classifier.intercept_,
             mean_powers=None,  # FIXME
             pairs=self.pairs,
             versions={
@@ -268,6 +268,7 @@ class HDF5Serializer(BaseSerializer):
         cgroup = hfile.create_group('/classifier')
 
         cgroup.create_dataset('weights', data=self.weights, chunks=True)
+        cgroup.create_dataset('intercept', data=[self.classifier.intercept_])
 
         info_group = cgroup.create_group('info')
         addstring = partial(self.addstring, info_group)
