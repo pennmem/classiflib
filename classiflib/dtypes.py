@@ -54,7 +54,6 @@ pairs = np.dtype([
 
 # Logistic regression parameters used for instantiation
 logit_params = np.dtype([
-    ('width', '<i4'),
     ('C', '<f8'),
 ])
 
@@ -64,11 +63,3 @@ timing_window = np.dtype([
     ('end_time', '<f8'),
     ('buffer', '<f8')
 ])
-
-
-# defaults
-##########
-
-fr_encoding = make_timing_window(0., 1.366, 1.365)
-fr_retrieval = make_timing_window(-0.525, 0.0, 0.524)
-fr_hfs = make_timing_window(0., 1.6, 1.)
