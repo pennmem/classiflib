@@ -20,8 +20,8 @@ def with_id(dtype, typestr='<i8', name='id'):
     dtype with prepended id field.
 
     """
-    types = [(name, typestr)]
-    return np.dtype(types + [(key, value[0].str) for key, value in dtype.fields.items()])
+    descr = [(name, typestr)] + dtype.descr
+    return np.dtype(descr)
 
 
 def make_timing_window(start, end, buffer):
