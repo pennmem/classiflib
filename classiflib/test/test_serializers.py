@@ -146,7 +146,7 @@ class TestHDF5Serializer:
             assert igroup['auc'][0] == 0.5
             assert 'classname' in igroup
             assert 'subject' in igroup
-            assert isinstance(json.loads(hfile['/classifier/info/params'][0]), dict)
+            assert isinstance(json.loads(hfile['/classifier/info/params'][0].decode()), dict)
 
             weights = hfile['/classifier/weights']
             assert weights.shape == (16,)
