@@ -10,3 +10,10 @@ def test_with_id():
 
     array = np.recarray((1,), dtype=dtype)
     assert array.id == 0
+
+
+def test_make_timing_window():
+    window = make_timing_window(0., 1.366, 1.365)
+    assert window.start_time == 0
+    assert window.end_time == 1.366
+    assert window.buffer == 1.365

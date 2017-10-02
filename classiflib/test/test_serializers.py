@@ -3,7 +3,6 @@ from io import BytesIO
 
 import pytest
 import numpy as np
-import tables
 import h5py
 
 from sklearn import __version__ as sklearn_version
