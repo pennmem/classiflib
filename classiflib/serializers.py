@@ -76,23 +76,6 @@ class BaseSerializer(object):
             weights += [(i, f, coefs[i])]
         self.weights = np.rec.fromrecords(weights, dtype=dtypes.weights)
 
-    @classmethod
-    def from_pickle(cls, pickle_file, pairs):
-        """Convert the legacy pickle format to other formats.
-
-        Parameters
-        ----------
-        pickle_file : str or pathlib.Path
-            Pickle file to read
-        pairs : list or np.recarray
-            See :meth:`BaseSerializer.__init__` for details
-
-        """
-        classifier = joblib.load(pickle_file)
-        serializer = cls(classifier, pairs)
-        serializer._from_legacy_format = True
-        return serializer
-
     @staticmethod
     def _validate_classifier(classifier):
         allowed = BaseSerializer.SUPPORTED_CLASSIFIERS
