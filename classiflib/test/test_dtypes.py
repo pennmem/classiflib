@@ -8,8 +8,8 @@ def test_with_id():
     for key in pairs.fields:
         assert key in dtype.fields
 
-    array = np.recarray((1,), dtype=dtype)
-    assert array.id == 0
+    array = np.rec.fromrecords([(0, 0, 1, 'A', 'B')], dtype=dtype)
+    assert array.id[0] == 0
 
 
 def test_make_timing_window():
