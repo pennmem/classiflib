@@ -3,7 +3,7 @@
 import numpy as np
 
 
-def with_id(dtype, typestr='i8', name='id'):
+def with_id(dtype, typestr='<i8', name='id'):
     """Inserts an ID field to the passed dtype.
 
     Parameters
@@ -50,6 +50,13 @@ pairs = np.dtype([
     ('contact2', '<i8'),
     ('label1', '|S256'),
     ('label2', '|S256')
+])
+
+# Classifier weights
+weights = np.dtype([
+    ('pair_id', '<i8'),
+    ('frequency', '<f8'),
+    ('value', '<f8')
 ])
 
 # Window timings

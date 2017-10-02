@@ -10,6 +10,7 @@ from sklearn.externals import joblib
 
 from . import __version__, dtypes
 from .dtypes import with_id
+from .defaults import FRDefaults
 from .classifier import CLASSIFIER_VERSION
 from .container import ClassifierContainer
 from .util import git_revision
@@ -27,6 +28,8 @@ class BaseSerializer(object):
         classifier. Each element of the list is a tuple of the following form:
         ``(contact1: int, contact2: int, label1: str, label2: str)``. Also can
         be a recarray with the dtype ``.dtypes.pairs``.
+    frequencies : array-like
+        List of frequencies used by the classifier.
     roc : np.ndarray
         ROC curve data
     auc : float
@@ -36,6 +39,9 @@ class BaseSerializer(object):
 
     Notes
     -----
+    The ``pairs`` parameter must explicitly exclude pairs that are excluded from
+    the classifier.
+
     Only :class:`LogisticRegression` classifiers are supported at this time.
     This is due to wanting to ensure maximum floating point precision is
     preserved.
@@ -45,8 +51,8 @@ class BaseSerializer(object):
         LogisticRegression,
     )
 
-    def __init__(self, classifier, pairs, roc=None, auc=None,
-                 subject="undefined"):
+    def __init__(self, classifier, pairs, frequencies=FRDefaults.freqs,
+                 roc=None, auc=None, subject="undefined"):
         # Indicates if this was generated from a legacy pickle file or not
         self._from_legacy_format = False
 
@@ -55,7 +61,20 @@ class BaseSerializer(object):
         self.roc = roc if roc is not None else np.zeros((2, 1))
         self.auc = auc or 0.
         self.subject = subject
-        self.params = self.classifier.__dict__
+
+        # We have to omit attributes we add for testing purposes
+        self.params = {
+            'key': value
+            for key, value in self.classifier.__dict__.items()
+            if not key.endswith('_')
+        }
+
+        weights = []
+        coefs = self.classifier.coefs_.flatten()
+        for i in range(len(coefs)):
+            f = frequencies[i % len(frequencies)]
+            weights += [(i, f, coefs[i])]
+        self.weights = np.rec.fromrecords(weights, dtype=dtypes.weights)
 
     @classmethod
     def from_pickle(cls, pickle_file, pairs):
@@ -190,7 +209,7 @@ class PickleSerializer(BaseSerializer):
                 'auc': self.auc,
                 'params': json.dumps(self.params),
             },
-            weights=None,  # FIXME
+            weights=self.weights,
             intercept=None,  # FIXME
             mean_powers=None,  # FIXME
             pairs=self.pairs,
@@ -248,8 +267,7 @@ class HDF5Serializer(BaseSerializer):
         """Create classifier group and add data."""
         cgroup = hfile.create_group('/classifier')
 
-        # hfile.create_table(cgroup, 'weights', Weight, title='Classifier weights',
-        #                    expectedrows=256)
+        cgroup.create_dataset('weights', data=self.weights, chunks=True)
 
         info_group = cgroup.create_group('info')
         addstring = partial(self.addstring, info_group)

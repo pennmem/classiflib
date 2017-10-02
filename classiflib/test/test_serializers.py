@@ -21,7 +21,7 @@ def single_pair():
 
 
 class DummyClassifier(LogisticRegression):
-    pass
+    coefs_ = np.random.random((1, 8 * 1))
 
 
 class TestBaseSerializer:
@@ -37,6 +37,15 @@ class TestBaseSerializer:
 
         with pytest.raises(AssertionError):
             BaseSerializer(SGDClassifier, single_pair())
+
+    def test_weights(self):
+        pairs = single_pair() + single_pair()
+        serializer = BaseSerializer(DummyClassifier(), pairs)
+        weights = serializer.weights
+        assert hasattr(weights, 'pair_id')
+        assert hasattr(weights, 'frequency')
+        assert hasattr(weights, 'value')
+        assert (weights.value == DummyClassifier.coefs_[0, :]).all()
 
     def test_version(self):
         with pytest.raises(NotImplementedError):
@@ -57,6 +66,9 @@ class TestPickleSerializer:
         container = joblib.load(outfile)
         classifier = container.classifier
         assert isinstance(classifier, DummyClassifier)
+
+        weights = container.weights
+        assert len(weights) == 8
 
         info = container.classifier_info
         assert 'classname' in info
@@ -120,7 +132,9 @@ class TestHDF5Serializer:
 
     def test_add_classifier(self):
         roc = np.array([np.linspace(0, 1, 100), np.linspace(0, 1, 100)])
-        serializer = HDF5Serializer(DummyClassifier(), single_pair(),
+        classifier = DummyClassifier()
+        classifier.coefs_ = np.random.random((1, 16))
+        serializer = HDF5Serializer(classifier, single_pair() + single_pair(),
                                     roc=roc, auc=0.5)
 
         with self.hfile() as hfile:
@@ -133,6 +147,9 @@ class TestHDF5Serializer:
             assert 'classname' in igroup
             assert 'subject' in igroup
             assert isinstance(json.loads(hfile['/classifier/info/params'][0]), dict)
+
+            weights = hfile['/classifier/weights']
+            assert weights.shape == (16,)
 
     @pytest.mark.parametrize('dtype', ['list', 'recarray'])
     @pytest.mark.parametrize('overwrite', [True, False])
