@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from io import BytesIO
+import json
 
 import pytest
 import numpy as np
@@ -56,6 +57,13 @@ class TestPickleSerializer:
         container = joblib.load(outfile)
         classifier = container.classifier
         assert isinstance(classifier, DummyClassifier)
+
+        info = container.classifier_info
+        assert 'classname' in info
+        assert 'subject' in info
+        assert 'roc' in info
+        assert 'auc' in info
+        assert isinstance(json.loads(info['params']), dict)
 
 
 class TestHDF5Serializer:
@@ -119,8 +127,12 @@ class TestHDF5Serializer:
             serializer.add_classifier(hfile)
 
         with self.hopen() as hfile:
-            assert hfile['/classifier/roc'].shape == (2, 100)
-            assert hfile['/classifier/auc'][0] == 0.5
+            igroup = hfile['/classifier/info']
+            assert igroup['roc'].shape == (2, 100)
+            assert igroup['auc'][0] == 0.5
+            assert 'classname' in igroup
+            assert 'subject' in igroup
+            assert isinstance(json.loads(hfile['/classifier/info/params'][0]), dict)
 
     @pytest.mark.parametrize('dtype', ['list', 'recarray'])
     @pytest.mark.parametrize('overwrite', [True, False])

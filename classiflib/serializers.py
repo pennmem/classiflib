@@ -1,6 +1,6 @@
 import os.path as osp
 from functools import partial
-from warnings import warn
+import json
 
 import numpy as np
 import h5py
@@ -55,6 +55,7 @@ class BaseSerializer(object):
         self.roc = roc if roc is not None else np.zeros((2, 1))
         self.auc = auc or 0.
         self.subject = subject
+        self.params = self.classifier.__dict__
 
     @classmethod
     def from_pickle(cls, pickle_file, pairs):
@@ -187,6 +188,7 @@ class PickleSerializer(BaseSerializer):
                 'subject': self.subject,
                 'roc': self.roc,
                 'auc': self.auc,
+                'params': json.dumps(self.params),
             },
             weights=None,  # FIXME
             intercept=None,  # FIXME
@@ -253,14 +255,10 @@ class HDF5Serializer(BaseSerializer):
         addstring = partial(self.addstring, info_group)
         addstring('classname', self.classname)
         addstring('subject', self.subject)
-
-        cgroup.create_dataset('roc', data=self.roc, chunks=True)
-        cgroup.create_dataset('auc', data=[self.auc], chunks=True)
-
-        # params = self.classifier.get_params()
-        # params_dtype = [(key, np.dtype(value)) for key, value in params.items()]
-        # hfile.create_table('/classifier', 'params', params_dtype,
-        #                    title="classifier creation parameters")
+        params = json.dumps(self.params)
+        addstring('params', params, dtype='|S{:d}'.format(len(params)))
+        info_group.create_dataset('roc', data=self.roc, chunks=True)
+        info_group.create_dataset('auc', data=[self.auc], chunks=True)
 
     def _create_hdf5(self, filename):
         with h5py.File(filename, 'w') as hfile:

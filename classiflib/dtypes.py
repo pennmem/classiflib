@@ -52,11 +52,6 @@ pairs = np.dtype([
     ('label2', '|S256')
 ])
 
-# Logistic regression parameters used for instantiation
-logit_params = np.dtype([
-    ('C', '<f8'),
-])
-
 # Window timings
 timing_window = np.dtype([
     ('start_time', '<f8'),
