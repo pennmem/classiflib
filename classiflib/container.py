@@ -48,12 +48,13 @@ class ClassifierContainer(object):
                  classifier_info=_empty_classifier_info, versions=None,
                  timestamp=None):
         self.classifier = classifier
-        self.classifier_info = classifier_info
+        self.pairs = pairs
+        self.mean_powers = powers
+
+        self.frequencies = frequencies
         self.weights = weights
         self.intercept = intercept
-        self.mean_powers = powers
-        self.frequencies = frequencies
-        self.pairs = pairs
+        self.classifier_info = classifier_info
         self.versions = versions
         self.timestamp = timestamp or time.time()
 

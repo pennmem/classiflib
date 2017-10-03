@@ -11,14 +11,15 @@ def git_revision():
     """
     p = Popen('git ls-files'.split(), stdout=PIPE, stderr=PIPE)
     stdout, _ = p.communicate()
-    if not len(stdout):  # we're not in a git repository
+    if not len(stdout):  # pragma: nocover
+        # we're not in a git repository
         return 'unknown'
 
     p = Popen('git rev-parse HEAD'.split(), stdout=PIPE, stderr=PIPE)
     stdout, _ = p.communicate()
     if len(stdout) > 0:
         return stdout.decode().strip()
-    else:
+    else:  # pragma: nocover
         return 'unknown'
 
 
@@ -44,5 +45,5 @@ def convert_pairs_json(filename):
     return np.sort(np.rec.fromrecords(records, dtype=dtypes.pairs), order='contact1')
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     print(git_revision())
