@@ -27,7 +27,7 @@ def mean_powers():
 
 
 class DummyClassifier(LogisticRegression):
-    coefs_ = np.random.random((1, 8 * 1))
+    coef_ = np.random.random((1, 8 * 1))
     intercept_ = 0.
 
 
@@ -52,7 +52,7 @@ class TestBaseSerializer:
         assert hasattr(weights, 'pair_id')
         assert hasattr(weights, 'frequency')
         assert hasattr(weights, 'value')
-        assert (weights.value == DummyClassifier.coefs_[0, :]).all()
+        assert (weights.value == DummyClassifier.coef_[0, :]).all()
 
     def test_version(self):
         with pytest.raises(NotImplementedError):
@@ -168,7 +168,7 @@ class TestHDF5Serializer:
     def test_add_classifier(self):
         roc = np.array([np.linspace(0, 1, 100), np.linspace(0, 1, 100)])
         classifier = DummyClassifier()
-        classifier.coefs_ = np.random.random((1, 16))
+        classifier.coef_ = np.random.random((1, 16))
         serializer = HDF5Serializer(classifier, single_pair() + single_pair(),
                                     self.mean_powers, roc=roc, auc=0.5)
 

@@ -41,7 +41,7 @@ def convert_pairs_json(filename):
     pairs = pairs_json[list(pairs_json.keys())[0]]['pairs']
     records = [(entry['channel_1'], entry['channel_2'], pair.split('-')[0], pair.split('-')[1])
                for pair, entry in pairs.items()]
-    return np.rec.fromrecords(records, dtype=dtypes.pairs)
+    return np.sort(np.rec.fromrecords(records, dtype=dtypes.pairs), order='contact1')
 
 
 if __name__ == "__main__":

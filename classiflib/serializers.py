@@ -68,15 +68,15 @@ class BaseSerializer(object):
         self.subject = subject
         self.timestamp = timestamp or time.time()
 
-        # We have to omit attributes we add for testing purposes
+        # We have to omit attributes added after training (ones ending with _)
         self.params = {
-            'key': value
+            key: value
             for key, value in self.classifier.__dict__.items()
             if not key.endswith('_')
         }
 
         weights = []
-        coefs = self.classifier.coefs_.flatten()
+        coefs = self.classifier.coef_.flatten()
         for i in range(len(coefs)):
             f = frequencies[i % len(frequencies)]
             weights += [(i, f, coefs[i])]

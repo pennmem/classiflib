@@ -43,7 +43,7 @@ class ClassifierContainer(object):
         Unix time in seconds (current time if not given).
 
     """
-    def __init__(self, classifier, pairs, powers, frequencies=FRDefaults,
+    def __init__(self, classifier, pairs, powers, frequencies=FRDefaults.freqs,
                  weights=None, intercept=None,
                  classifier_info=_empty_classifier_info, versions=None,
                  timestamp=None):
@@ -96,7 +96,7 @@ class ClassifierContainer(object):
             roc=roc, auc=auc, subject=subject, timestamp=self.timestamp
         )
 
-        serializer.serialize(overwrite=overwrite)
+        serializer.serialize(filename, overwrite=overwrite)
 
     @classmethod
     def load(cls, filename):
