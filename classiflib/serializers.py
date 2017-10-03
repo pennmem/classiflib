@@ -201,7 +201,7 @@ class PickleSerializer(BaseSerializer):
             },
             weights=self.weights,
             intercept=self.classifier.intercept_,
-            mean_powers=self.powers,
+            powers=self.powers,
             pairs=self.pairs,
             versions={
                 'classifier': CLASSIFIER_VERSION,
@@ -320,7 +320,7 @@ class HDF5Serializer(BaseSerializer):
                 classifier_info=classifier_info,
                 weights=hfile['/classifier/weights'].value,
                 intercept=hfile['/classifier/intercept'].value,
-                mean_powers=hfile['/classifier/mean_powers'].value,
+                powers=hfile['/classifier/mean_powers'].value,
                 pairs=hfile['/pairs'].value,
                 versions=HDF5Serializer._group_to_dict(hfile, '/versions'),
                 timestamp=hfile.attrs['timestamp']
