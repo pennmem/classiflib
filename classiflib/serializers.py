@@ -28,6 +28,9 @@ class BaseSerializer(object):
         classifier. Each element of the list is a tuple of the following form:
         ``(contact1: int, contact2: int, label1: str, label2: str)``. Also can
         be a recarray with the dtype ``.dtypes.pairs``.
+    powers : np.ndarray
+        A MxN matrix of mean powers during training (M = number of events, N =
+        number of features).
     frequencies : array-like
         List of frequencies used by the classifier.
     roc : np.ndarray
@@ -51,13 +54,14 @@ class BaseSerializer(object):
         LogisticRegression,
     )
 
-    def __init__(self, classifier, pairs, frequencies=FRDefaults.freqs,
+    def __init__(self, classifier, pairs, powers, frequencies=FRDefaults.freqs,
                  roc=None, auc=None, subject="undefined"):
         # Indicates if this was generated from a legacy pickle file or not
         self._from_legacy_format = False
 
         self.classifier = self._validate_classifier(classifier)
         self.pairs = self._validate_pairs(pairs)
+        self.powers = powers
         self.roc = roc if roc is not None else np.zeros((2, 1))
         self.auc = auc or 0.
         self.subject = subject
@@ -194,7 +198,7 @@ class PickleSerializer(BaseSerializer):
             },
             weights=self.weights,
             intercept=self.classifier.intercept_,
-            mean_powers=None,  # FIXME
+            mean_powers=self.powers,
             pairs=self.pairs,
             versions={
                 'classifier': CLASSIFIER_VERSION,
@@ -246,6 +250,10 @@ class HDF5Serializer(BaseSerializer):
         """Create and populate pairs table."""
         hfile.create_dataset('/pairs', data=self.pairs, chunks=True)
 
+    def add_powers(self, hfile):
+        """Add mean powers."""
+        hfile.create_dataset('/mean_powers', data=self.powers, chunks=True)
+
     def add_classifier(self, hfile):
         """Create classifier group and add data."""
         cgroup = hfile.create_group('/classifier')
@@ -257,18 +265,18 @@ class HDF5Serializer(BaseSerializer):
         addstring = partial(self.addstring, info_group)
         addstring('classname', self.classname)
         addstring('subject', self.subject)
+
         params = json.dumps(self.params)
         addstring('params', params, dtype='|S{:d}'.format(len(params)))
+
         info_group.create_dataset('roc', data=self.roc, chunks=True)
         info_group.create_dataset('auc', data=[self.auc], chunks=True)
 
-    def _create_hdf5(self, filename):
-        with h5py.File(filename, 'w') as hfile:
+    def serialize_impl(self, outfile, overwrite=True):
+        assert isinstance(outfile, str), "HDF5Serializer only supports writing to actual files"
+        with h5py.File(outfile, 'w') as hfile:
             self.add_attributes(hfile)
             self.add_versions(hfile)
             self.add_pairs(hfile)
             self.add_classifier(hfile)
-
-    def serialize_impl(self, outfile, overwrite=True):
-        assert isinstance(outfile, str), "HDF5Serializer only supports writing to actual files"
-        self._create_hdf5(outfile)
+            self.add_powers(hfile)

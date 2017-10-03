@@ -4,6 +4,7 @@ import json
 
 import pytest
 import numpy as np
+from numpy.testing import assert_equal
 import h5py
 
 from sklearn import __version__ as sklearn_version
@@ -20,6 +21,11 @@ def single_pair():
     return [(0, 1, 'A0', 'A1')]
 
 
+@pytest.fixture
+def mean_powers():
+    return np.random.random((1000, 8*128))
+
+
 class DummyClassifier(LogisticRegression):
     coefs_ = np.random.random((1, 8 * 1))
     intercept_ = 0.
@@ -27,21 +33,21 @@ class DummyClassifier(LogisticRegression):
 
 class TestBaseSerializer:
     def setup_method(self, method):
-        self.serializer = BaseSerializer(DummyClassifier(), [(0, 1, 'A0', 'A1')])
+        self.serializer = BaseSerializer(DummyClassifier(), [(0, 1, 'A0', 'A1')], mean_powers())
 
-    def test_classifier_validation(self):
+    def test_classifier_validation(self, mean_powers):
         class BadClassifier(object):
             pass
 
         with pytest.raises(AssertionError):
-            BaseSerializer(BadClassifier(), single_pair())
+            BaseSerializer(BadClassifier(), single_pair(), mean_powers)
 
         with pytest.raises(AssertionError):
-            BaseSerializer(SGDClassifier, single_pair())
+            BaseSerializer(SGDClassifier, single_pair(), mean_powers)
 
-    def test_weights(self):
+    def test_weights(self, mean_powers):
         pairs = single_pair() + single_pair()
-        serializer = BaseSerializer(DummyClassifier(), pairs)
+        serializer = BaseSerializer(DummyClassifier(), pairs, mean_powers)
         weights = serializer.weights
         assert hasattr(weights, 'pair_id')
         assert hasattr(weights, 'frequency')
@@ -58,8 +64,8 @@ class TestBaseSerializer:
 
 
 class TestPickleSerializer:
-    def test_serialize(self, tmpdir):
-        serializer = PickleSerializer(DummyClassifier(), single_pair())
+    def test_serialize(self, tmpdir, mean_powers):
+        serializer = PickleSerializer(DummyClassifier(), single_pair(), mean_powers)
 
         outfile = tmpdir.join('out.pkl').strpath
         serializer.serialize(outfile)
@@ -80,12 +86,18 @@ class TestPickleSerializer:
         assert 'auc' in info
         assert isinstance(json.loads(info['params']), dict)
 
+    @pytest.mark.skip(reason="not implemented yet")
+    def test_deserialize(self):
+        pass
+
 
 class TestHDF5Serializer:
     def setup_method(self, method):
         self.classifier = DummyClassifier()
         self.pairs = single_pair()
-        self.serializer = HDF5Serializer(self.classifier, self.pairs, subject='guido')
+        self.mean_powers = mean_powers()
+        self.serializer = HDF5Serializer(self.classifier, self.pairs,
+                                         self.mean_powers, subject='guido')
 
     @contextmanager
     def hfile(self):
@@ -120,7 +132,7 @@ class TestHDF5Serializer:
             (n, n + 1, 'A{}'.format(n), 'A{}'.format(n + 1))
             for n in range(10)
         ]
-        serializer = HDF5Serializer(self.classifier, pairs)
+        serializer = HDF5Serializer(self.classifier, pairs, self.mean_powers)
 
         with self.hfile() as hfile:
             serializer.add_pairs(hfile)
@@ -133,12 +145,19 @@ class TestHDF5Serializer:
                 assert row['label1'] == 'A{}'.format(i).encode()
                 assert row['label2'] == 'A{}'.format(i + 1).encode()
 
+    def test_add_powers(self):
+        with self.hfile() as hfile:
+            self.serializer.add_powers(hfile)
+
+        with self.hopen() as hfile:
+            assert_equal(hfile['/mean_powers'][:], self.mean_powers)
+
     def test_add_classifier(self):
         roc = np.array([np.linspace(0, 1, 100), np.linspace(0, 1, 100)])
         classifier = DummyClassifier()
         classifier.coefs_ = np.random.random((1, 16))
         serializer = HDF5Serializer(classifier, single_pair() + single_pair(),
-                                    roc=roc, auc=0.5)
+                                    self.mean_powers, roc=roc, auc=0.5)
 
         with self.hfile() as hfile:
             serializer.add_classifier(hfile)
@@ -165,7 +184,7 @@ class TestHDF5Serializer:
         else:
             pairs = np.rec.fromrecords(single_pair, dtype=dtypes.pairs)
 
-        s = HDF5Serializer(self.classifier, pairs)
+        s = HDF5Serializer(self.classifier, pairs, self.mean_powers)
 
         if not overwrite:
             with open('out.h5', 'w') as f:
