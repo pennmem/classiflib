@@ -109,6 +109,19 @@ class TestHDF5Serializer:
         with h5py.File('out.h5', 'r') as hfile:
             yield hfile
 
+    def test_group_to_dict(self):
+        scalar = 1
+        matrix = np.random.random((100, 100))
+
+        with self.hfile() as hfile:
+            hfile['/group/a'] = scalar
+            hfile['/group/b'] = matrix
+
+        with self.hopen() as hfile:
+            d = self.serializer._group_to_dict(hfile, 'group')
+            assert d['a'] == scalar
+            assert_equal(d['b'], matrix)
+
     def test_add_attributes(self):
         with self.hfile() as hfile:
             self.serializer.add_attributes(hfile)
@@ -201,3 +214,7 @@ class TestHDF5Serializer:
     def test_serialize_to_buffer(self):
         with pytest.raises(AssertionError):
             self.serializer.serialize(BytesIO())
+
+    @pytest.mark.skip(reason='not implemented yet')
+    def test_deserialize(self):
+        pass

@@ -2,6 +2,7 @@ import time
 import os.path as osp
 from functools import partial
 import json
+from importlib import import_module
 
 import numpy as np
 import h5py
@@ -162,7 +163,8 @@ class BaseSerializer(object):
 
         self.serialize_impl(outfile)
 
-    def deserialize(self, infile):
+    @staticmethod
+    def deserialize(infile):
         """Deserialize and return the classifier and associated data.
 
         Parameters
@@ -214,13 +216,32 @@ class PickleSerializer(BaseSerializer):
 
         joblib.dump(container, outfile)
 
-    def deserialize(self, infile):
+    @staticmethod
+    def deserialize(infile):
         return joblib.load(infile)
 
 
 class HDF5Serializer(BaseSerializer):
     """Utility class to serialize or deserialize a classifier using HDF5."""
     _version = "1.0.0"
+
+    @staticmethod
+    def _group_to_dict(hfile, groupname):
+        """Loads all members of a group into a dict.
+
+        This function is *not* recursive.
+
+        Parameters
+        ----------
+        hfile : h5py.File
+        groupname : str
+
+        """
+        group = hfile[groupname]
+        return {
+            member: group[member].value
+            for member in group
+        }
 
     def addstring(self, group, name, value, dtype='|S64'):
         """Base function for adding a string to a group; will be partialed to
@@ -285,3 +306,25 @@ class HDF5Serializer(BaseSerializer):
             self.add_pairs(hfile)
             self.add_classifier(hfile)
             self.add_powers(hfile)
+
+    @staticmethod
+    def deserialize(infile):
+        with h5py.File(infile, 'r') as hfile:
+            full_classname = hfile['/classifier/info/classname'][0].split('.')
+            params = json.loads(hfile['/classifier/params'][0])
+            classname = full_classname[-1]
+            module = import_module('.'.join(full_classname[:-1]))
+            classifier = getattr(module, classname)(**params)
+
+            classifier_info = HDF5Serializer._group_to_dict(hfile, '/classifier/info')
+
+            return ClassifierContainer(
+                classifier=classifier,
+                classifier_info=classifier_info,
+                weights=hfile['/classifier/weights'].value,
+                intercept=hfile['/classifier/intercept'].value,
+                mean_powers=hfile['/classifier/mean_powers'].value,
+                pairs=hfile['/pairs'].value,
+                versions=HDF5Serializer._group_to_dict(hfile, '/versions'),
+                timestamp=hfile.attrs['timestamp']
+            )
