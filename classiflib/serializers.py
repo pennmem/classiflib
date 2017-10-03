@@ -60,9 +60,6 @@ class BaseSerializer(object):
 
     def __init__(self, classifier, pairs, powers, frequencies=FRDefaults.freqs,
                  roc=None, auc=None, subject="undefined", timestamp=None):
-        # Indicates if this was generated from a legacy pickle file or not
-        self._from_legacy_format = False
-
         self.classifier = self._validate_classifier(classifier)
         self.pairs = self._validate_pairs(pairs)
         self.powers = powers
@@ -265,7 +262,7 @@ class HDF5Serializer(BaseSerializer):
         """Create version number node and add relevant versions."""
         group = hfile.create_group('/versions')
         addstring = partial(self.addstring, group)
-        classifier_version = CLASSIFIER_VERSION if not self._from_legacy_format else "1.0.0"
+        classifier_version = CLASSIFIER_VERSION
 
         addstring('sklearn', sklearn_version)
         addstring('classiflib', __version__)

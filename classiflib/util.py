@@ -1,4 +1,7 @@
 from subprocess import Popen, PIPE
+import json
+import numpy as np
+from classiflib import dtypes
 
 
 def git_revision():
@@ -17,6 +20,28 @@ def git_revision():
         return stdout.decode().strip()
     else:
         return 'unknown'
+
+
+def convert_pairs_json(filename):
+    """Convert data from ``pairs.json`` to the minimal recarray format.
+
+    Parameters
+    ----------
+    filename : str
+
+    Returns
+    -------
+    np.recarray
+        dtype = ``classflib.dtypes.pairs``
+
+    """
+    with open(filename, 'r') as f:
+        pairs_json = json.loads(f.read())
+
+    pairs = pairs_json[list(pairs_json.keys())[0]]['pairs']
+    records = [(entry['channel_1'], entry['channel_2'], pair.split('-')[0], pair.split('-')[1])
+               for pair, entry in pairs.items()]
+    return np.rec.fromrecords(records, dtype=dtypes.pairs)
 
 
 if __name__ == "__main__":
