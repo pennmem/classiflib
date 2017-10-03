@@ -57,7 +57,7 @@ class ClassifierContainer(object):
         self.versions = versions
         self.timestamp = timestamp or time.time()
 
-    def serialize(self, filename, overwrite=False):
+    def save(self, filename, overwrite=False):
         """Serialize to a file.
 
         Parameters
