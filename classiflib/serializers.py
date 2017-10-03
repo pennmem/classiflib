@@ -1,3 +1,4 @@
+import time
 import os.path as osp
 from functools import partial
 import json
@@ -39,6 +40,8 @@ class BaseSerializer(object):
         Computed AUC
     subject : str
         Subject ID
+    timestamp : float
+        Optional timestamp to indicate creation time (now if not given).
 
     Notes
     -----
@@ -55,7 +58,7 @@ class BaseSerializer(object):
     )
 
     def __init__(self, classifier, pairs, powers, frequencies=FRDefaults.freqs,
-                 roc=None, auc=None, subject="undefined"):
+                 roc=None, auc=None, subject="undefined", timestamp=None):
         # Indicates if this was generated from a legacy pickle file or not
         self._from_legacy_format = False
 
@@ -65,6 +68,7 @@ class BaseSerializer(object):
         self.roc = roc if roc is not None else np.zeros((2, 1))
         self.auc = auc or 0.
         self.subject = subject
+        self.timestamp = timestamp or time.time()
 
         # We have to omit attributes we add for testing purposes
         self.params = {
@@ -234,6 +238,7 @@ class HDF5Serializer(BaseSerializer):
 
         """
         hfile.attrs['commit_hash'] = git_revision()
+        hfile.attrs['timestamp'] = self.timestamp
 
     def add_versions(self, hfile):
         """Create version number node and add relevant versions."""
