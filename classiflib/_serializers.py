@@ -225,6 +225,10 @@ class PickleSerializer(BaseSerializer):
 class HDF5Serializer(BaseSerializer):
     """Utility class to serialize or deserialize a classifier using HDF5."""
     _version = "1.0.0"
+    __compression = {
+        'compression': 'gzip',
+        'compression_opts': 9,
+    }
 
     @staticmethod
     def _group_to_dict(hfile, groupname):
@@ -256,7 +260,7 @@ class HDF5Serializer(BaseSerializer):
 
         """
         string = value if not hasattr(value, 'encode') else value.encode()
-        group.create_dataset(name, data=[string], dtype=dtype)
+        group.create_dataset(name, data=[string], dtype=dtype, **self.__compression)
 
     def add_attributes(self, hfile):
         """Adds root node attributes:
@@ -281,13 +285,13 @@ class HDF5Serializer(BaseSerializer):
 
     def add_pairs(self, hfile):
         """Create and populate pairs table."""
-        hfile.create_dataset('/pairs', data=self.pairs, chunks=True)
+        hfile.create_dataset('/pairs', data=self.pairs, **self.__compression)
 
     def add_classifier(self, hfile):
         """Create classifier group and add data."""
         cgroup = hfile.create_group('/classifier')
 
-        cgroup.create_dataset('weights', data=self.weights, chunks=True)
+        cgroup.create_dataset('weights', data=self.weights, **self.__compression)
         cgroup.create_dataset('intercept', data=[self.classifier.intercept_])
 
         info_group = cgroup.create_group('info')
@@ -298,12 +302,12 @@ class HDF5Serializer(BaseSerializer):
         params = json.dumps(self.params)
         addstring('params', params, dtype='|S{:d}'.format(len(params)))
 
-        info_group.create_dataset('roc', data=self.roc, chunks=True)
-        info_group.create_dataset('auc', data=[self.auc], chunks=True)
+        info_group.create_dataset('roc', data=self.roc, **self.__compression)
+        info_group.create_dataset('auc', data=[self.auc], **self.__compression)
 
     def add_powers(self, hfile):
         """Add mean powers."""
-        hfile.create_dataset('/classifier/mean_powers', data=self.powers, chunks=True)
+        hfile.create_dataset('/classifier/mean_powers', data=self.powers, **self.__compression)
 
     def serialize_impl(self, outfile, overwrite=True):
         assert isinstance(outfile, str), "HDF5Serializer only supports writing to actual files"
