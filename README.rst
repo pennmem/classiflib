@@ -7,7 +7,7 @@ classiflib
 .. image:: https://codecov.io/gh/pennmem/classiflib/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/pennmem/classiflib
 
-.. image:: https://img.shields.io/badge/docs-here-brightgreen.svg
+.. image:: https://img.shields.io/badge/docs-here-blue.svg
    :target: https://pennmem.github.io/pennmem/classiflib/html/index.html
    :alt: docs
 

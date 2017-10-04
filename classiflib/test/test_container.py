@@ -48,8 +48,8 @@ def test_save(classifier, pairs, powers):
 
     loaded = joblib.load('out.pkl')
 
-    assert (loaded.classifier_info['roc'] == 0.).all()
-    assert loaded.classifier_info['auc'] == 0.
+    assert loaded.classifier_info['roc'] is None
+    assert loaded.classifier_info['auc'] is None
     assert loaded.classifier_info['subject'] == 'undefined'
     assert_equal(loaded.frequencies, FRDefaults.freqs)
     assert_equal(loaded.weights.value, classifier.coef_.flatten())

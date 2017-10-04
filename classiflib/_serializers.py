@@ -67,8 +67,8 @@ class BaseSerializer(object):
             "Number of features doesn't match power matrix shape!"
         self.powers = powers
 
-        self.roc = roc if roc is not None else np.zeros((2, 1))
-        self.auc = auc or 0.
+        self.roc = roc
+        self.auc = auc
         self.subject = subject
         self.timestamp = timestamp or time.time()
 
@@ -239,6 +239,10 @@ class HDF5Serializer(BaseSerializer):
         hfile : h5py.File
         groupname : str
 
+        Returns
+        -------
+        d : dict
+
         Notes
         -----
         This function is *not* recursive.
@@ -246,13 +250,19 @@ class HDF5Serializer(BaseSerializer):
         When the dtype of an array is a string, it is assumed that it contains
         a single utf8-encoded string.
 
+        h5py ``Empty`` datasets are converted to ``None``.
+
         """
         group = hfile[groupname]
-        return {
-            member: group[member].value if not group[member].dtype.char == 'S'
-                    else group[member][0].decode()
-            for member in group
-        }
+        d = {}
+        for member in group:
+            if isinstance(group[member].value, h5py.Empty):
+                d[member] = None
+            elif group[member].dtype.char == 'S':
+                d[member] = group[member][0].decode()
+            else:
+                d[member] = group[member].value
+        return d
 
     def addstring(self, group, name, value, dtype='|S64'):
         """Base function for adding a string to a group; will be partialed to
@@ -302,8 +312,15 @@ class HDF5Serializer(BaseSerializer):
         params = json.dumps(self.params)
         addstring('params', params, dtype='|S{:d}'.format(len(params)))
 
-        info_group.create_dataset('roc', data=self.roc, **self.__compression)
-        info_group.create_dataset('auc', data=[self.auc], **self.__compression)
+        if self.roc is None:
+            info_group.create_dataset('roc', dtype=h5py.Empty('<f8'))
+        else:
+            info_group.create_dataset('roc', data=self.roc, **self.__compression)
+
+        if self.auc is None:
+            info_group.create_dataset('auc', dtype=h5py.Empty('<f8'))
+        else:
+            info_group.create_dataset('auc', data=[self.auc], **self.__compression)
 
     def add_powers(self, hfile):
         """Add mean powers."""

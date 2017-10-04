@@ -228,8 +228,8 @@ class TestHDF5Serializer:
         assert container.timestamp == self.serializer.timestamp
 
         info = container.classifier_info
-        assert info['auc'] == 0.0
-        assert_equal(info['roc'], np.array([[0], [0]]))
+        assert info['auc'] is None
+        assert info['roc'] is None
         assert info['subject'] == 'guido'
         assert info['classname'].endswith('DummyClassifier')
 
