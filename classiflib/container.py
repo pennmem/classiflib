@@ -34,8 +34,8 @@ class ClassifierContainer(object):
     intercept : float
         Intercept. ``None`` if creating a container for serialization.
     classifier_info : dict
-        A dict containing the following keys: classname, subject, roc, auc,
-        params
+        A dict possibly containing the following keys: classname, subject, roc,
+        auc, params (see the meaning of these in the base serializer class).
     versions : dict
         All relevant version numbers at serialization time (``None`` if creating
         a container to be serialized).
@@ -76,7 +76,7 @@ class ClassifierContainer(object):
         * ``.h5`` -> HDF5
 
         """
-        from .serializers import PickleSerializer, HDF5Serializer
+        from ._serializers import PickleSerializer, HDF5Serializer
 
         extension = filename.split('.')[-1]
 
@@ -108,7 +108,7 @@ class ClassifierContainer(object):
         filename : str
 
         """
-        from .serializers import PickleSerializer, HDF5Serializer
+        from ._serializers import PickleSerializer, HDF5Serializer
 
         extension = filename.split('.')[-1]
 

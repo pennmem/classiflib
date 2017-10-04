@@ -13,7 +13,7 @@ from sklearn.externals import joblib
 
 from classiflib import dtypes, __version__
 from classiflib.classifier import CLASSIFIER_VERSION
-from classiflib.serializers import BaseSerializer, PickleSerializer, HDF5Serializer
+from classiflib._serializers import BaseSerializer, PickleSerializer, HDF5Serializer
 
 
 @pytest.fixture
