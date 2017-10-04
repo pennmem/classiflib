@@ -70,6 +70,7 @@ class BaseSerializer(object):
         self.roc = roc
         self.auc = auc
         self.subject = subject
+        self.frequencies = frequencies
         self.timestamp = timestamp or time.time()
 
         # We have to omit attributes added after training (ones ending with _)
@@ -206,6 +207,7 @@ class PickleSerializer(BaseSerializer):
             weights=self.weights,
             intercept=self.classifier.intercept_,
             powers=self.powers,
+            frequencies=self.frequencies,
             pairs=self.pairs,
             versions={
                 'classifier': CLASSIFIER_VERSION,
@@ -326,6 +328,10 @@ class HDF5Serializer(BaseSerializer):
         """Add mean powers."""
         hfile.create_dataset('/classifier/mean_powers', data=self.powers, **self.__compression)
 
+    def add_frequencies(self, hfile):
+        """Add a frequencies dataset."""
+        hfile.create_dataset('/frequencies', data=self.frequencies, **self.__compression)
+
     def serialize_impl(self, outfile, overwrite=True):
         assert isinstance(outfile, str), "HDF5Serializer only supports writing to actual files"
         with h5py.File(outfile, 'w') as hfile:
@@ -334,6 +340,7 @@ class HDF5Serializer(BaseSerializer):
             self.add_pairs(hfile)
             self.add_classifier(hfile)
             self.add_powers(hfile)
+            self.add_frequencies(hfile)
 
     @staticmethod
     def deserialize(infile):
