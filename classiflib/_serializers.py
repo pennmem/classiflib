@@ -318,7 +318,7 @@ class HDF5Serializer(BaseSerializer):
     def deserialize(infile):
         with h5py.File(infile, 'r') as hfile:
             full_classname = hfile['/classifier/info/classname'][0].decode().split('.')
-            params = json.loads(hfile['/classifier/info/params'][0])
+            params = json.loads(hfile['/classifier/info/params'][0].decode())
             classname = full_classname[-1]
             module = import_module('.'.join(full_classname[:-1]))
             classifier = getattr(module, classname)(**params)
