@@ -23,7 +23,7 @@ def single_pair():
 
 @pytest.fixture
 def mean_powers():
-    return np.random.random((1000, 8*128))
+    return np.random.random((1000, 8))
 
 
 class DummyClassifier(LogisticRegression):
@@ -46,7 +46,7 @@ class TestBaseSerializer:
             BaseSerializer(SGDClassifier, single_pair(), mean_powers)
 
     def test_weights(self, mean_powers):
-        pairs = single_pair() + single_pair()
+        pairs = single_pair()
         serializer = BaseSerializer(DummyClassifier(), pairs, mean_powers)
         weights = serializer.weights
         assert hasattr(weights, 'pair_id')
@@ -116,11 +116,13 @@ class TestHDF5Serializer:
         with self.hfile() as hfile:
             hfile['/group/a'] = scalar
             hfile['/group/b'] = matrix
+            hfile['/group/string'] = ['string'.encode()]
 
         with self.hopen() as hfile:
             d = self.serializer._group_to_dict(hfile, 'group')
             assert d['a'] == scalar
             assert_equal(d['b'], matrix)
+            assert d['string'] == 'string'
 
     def test_add_attributes(self):
         with self.hfile() as hfile:
@@ -145,7 +147,8 @@ class TestHDF5Serializer:
             (n, n + 1, 'A{}'.format(n), 'A{}'.format(n + 1))
             for n in range(10)
         ]
-        serializer = HDF5Serializer(self.classifier, pairs, self.mean_powers)
+        powers = np.random.random((1000, 8*len(pairs)))
+        serializer = HDF5Serializer(self.classifier, pairs, powers)
 
         with self.hfile() as hfile:
             serializer.add_pairs(hfile)
@@ -163,14 +166,15 @@ class TestHDF5Serializer:
             self.serializer.add_powers(hfile)
 
         with self.hopen() as hfile:
-            assert_equal(hfile['/mean_powers'][:], self.mean_powers)
+            assert_equal(hfile['/classifier/mean_powers'][:], self.mean_powers)
 
     def test_add_classifier(self):
         roc = np.array([np.linspace(0, 1, 100), np.linspace(0, 1, 100)])
         classifier = DummyClassifier()
         classifier.coef_ = np.random.random((1, 16))
+        powers = np.random.random((1000, 2*8))
         serializer = HDF5Serializer(classifier, single_pair() + single_pair(),
-                                    self.mean_powers, roc=roc, auc=0.5)
+                                    powers, roc=roc, auc=0.5)
 
         with self.hfile() as hfile:
             serializer.add_classifier(hfile)
@@ -215,6 +219,27 @@ class TestHDF5Serializer:
         with pytest.raises(AssertionError):
             self.serializer.serialize(BytesIO())
 
-    @pytest.mark.skip(reason='not implemented yet')
     def test_deserialize(self):
-        pass
+        self.serializer.serialize('out.h5')
+
+        container = self.serializer.deserialize('out.h5')
+
+        assert isinstance(container.classifier, DummyClassifier)
+        assert container.timestamp == self.serializer.timestamp
+
+        info = container.classifier_info
+        assert info['auc'] == 0.0
+        assert_equal(info['roc'], np.array([[0], [0]]))
+        assert info['subject'] == 'guido'
+        assert info['classname'].endswith('DummyClassifier')
+
+        assert_equal(container.weights['value'], self.classifier.coef_[0])
+        assert container.intercept == self.classifier.intercept_
+
+        pairs = np.rec.fromrecords(self.pairs, dtype=dtypes.pairs)
+        assert_equal(container.pairs.contact1, pairs.contact1)
+        assert_equal(container.pairs.contact2, pairs.contact2)
+        assert_equal(container.pairs.label1, pairs.label1)
+        assert_equal(container.pairs.label2, pairs.label2)
+
+        assert_equal(container.powers, self.mean_powers)

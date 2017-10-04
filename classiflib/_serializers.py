@@ -62,7 +62,11 @@ class BaseSerializer(object):
                  roc=None, auc=None, subject="undefined", timestamp=None):
         self.classifier = self._validate_classifier(classifier)
         self.pairs = self._validate_pairs(pairs)
+
+        assert powers.shape[1] == len(pairs) * len(frequencies), \
+            "Number of features doesn't match power matrix shape!"
         self.powers = powers
+
         self.roc = roc if roc is not None else np.zeros((2, 1))
         self.auc = auc or 0.
         self.subject = subject
@@ -226,17 +230,23 @@ class HDF5Serializer(BaseSerializer):
     def _group_to_dict(hfile, groupname):
         """Loads all members of a group into a dict.
 
-        This function is *not* recursive.
-
         Parameters
         ----------
         hfile : h5py.File
         groupname : str
 
+        Notes
+        -----
+        This function is *not* recursive.
+
+        When the dtype of an array is a string, it is assumed that it contains
+        a single utf8-encoded string.
+
         """
         group = hfile[groupname]
         return {
-            member: group[member].value
+            member: group[member].value if not group[member].dtype.char == 'S'
+                    else group[member][0].decode()
             for member in group
         }
 
@@ -273,10 +283,6 @@ class HDF5Serializer(BaseSerializer):
         """Create and populate pairs table."""
         hfile.create_dataset('/pairs', data=self.pairs, chunks=True)
 
-    def add_powers(self, hfile):
-        """Add mean powers."""
-        hfile.create_dataset('/mean_powers', data=self.powers, chunks=True)
-
     def add_classifier(self, hfile):
         """Create classifier group and add data."""
         cgroup = hfile.create_group('/classifier')
@@ -295,6 +301,10 @@ class HDF5Serializer(BaseSerializer):
         info_group.create_dataset('roc', data=self.roc, chunks=True)
         info_group.create_dataset('auc', data=[self.auc], chunks=True)
 
+    def add_powers(self, hfile):
+        """Add mean powers."""
+        hfile.create_dataset('/classifier/mean_powers', data=self.powers, chunks=True)
+
     def serialize_impl(self, outfile, overwrite=True):
         assert isinstance(outfile, str), "HDF5Serializer only supports writing to actual files"
         with h5py.File(outfile, 'w') as hfile:
@@ -307,8 +317,8 @@ class HDF5Serializer(BaseSerializer):
     @staticmethod
     def deserialize(infile):
         with h5py.File(infile, 'r') as hfile:
-            full_classname = hfile['/classifier/info/classname'][0].split('.')
-            params = json.loads(hfile['/classifier/params'][0])
+            full_classname = hfile['/classifier/info/classname'][0].decode().split('.')
+            params = json.loads(hfile['/classifier/info/params'][0])
             classname = full_classname[-1]
             module = import_module('.'.join(full_classname[:-1]))
             classifier = getattr(module, classname)(**params)

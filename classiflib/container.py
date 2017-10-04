@@ -2,6 +2,7 @@ import time
 import numpy as np
 from sklearn.base import BaseEstimator
 
+from . import dtypes
 from .defaults import FRDefaults
 
 _empty_classifier_info = {
@@ -16,7 +17,8 @@ _empty_classifier_info = {
 class ClassifierContainer(object):
     """Container carrying a classifier and associated data. This is used as the
     serializer-neutral object that is returned when deserializing and should not
-    need to be instantiated directly.
+    need to be instantiated directly. All parameters become attributes of the
+    same name.
 
     Parameters
     ----------
@@ -48,8 +50,14 @@ class ClassifierContainer(object):
                  classifier_info=_empty_classifier_info, versions=None,
                  timestamp=None):
         self.classifier = classifier
-        self.pairs = pairs
-        self.mean_powers = powers
+
+        if not isinstance(pairs, np.recarray):
+            dtype = dtypes.with_id(dtypes.pairs)
+            self.pairs = np.rec.fromrecords(pairs, dtype=dtype)
+        else:
+            self.pairs = pairs
+
+        self.powers = powers
 
         self.frequencies = frequencies
         self.weights = weights
@@ -93,7 +101,7 @@ class ClassifierContainer(object):
         subject = self.classifier_info['subject']
 
         serializer = SerializerClass(
-            self.classifier, self.pairs, self.mean_powers, self.frequencies,
+            self.classifier, self.pairs, self.powers, self.frequencies,
             roc=roc, auc=auc, subject=subject, timestamp=self.timestamp
         )
 

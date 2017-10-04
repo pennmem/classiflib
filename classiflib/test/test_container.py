@@ -28,7 +28,7 @@ def pairs():
 
 @pytest.fixture
 def powers():
-    powers = np.random.random((2, 2))
+    powers = np.random.random((2, 2*8))
     return powers
 
 
