@@ -104,9 +104,15 @@ class BaseSerializer(object):
     @staticmethod
     def _validate_pairs(pairs):
         """Validate pairs and convert to recarray if not already."""
+        dtype = with_id(dtypes.pairs)
+
         if isinstance(pairs, np.recarray):
             assert pairs.dtype == dtypes.pairs
-            return pairs
+            rpairs = np.rec.fromrecords([
+                (i, row[0], row[1], row[2], row[3])
+                for i, row in enumerate(pairs)
+            ], dtype=dtype)
+            return rpairs
 
         for row in pairs:
             assert isinstance(row[0], int)
@@ -114,7 +120,6 @@ class BaseSerializer(object):
             assert isinstance(row[2], str)
             assert isinstance(row[3], str)
 
-        dtype = with_id(dtypes.pairs)
         size = len(pairs)
         rpairs = np.recarray((size,), dtype=dtype)
         rpairs.id = np.arange(size, dtype='<i8')
