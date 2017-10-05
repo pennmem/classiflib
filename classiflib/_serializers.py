@@ -139,6 +139,17 @@ class BaseSerializer(object):
                          self.classifier.__class__.__name__])
 
     @property
+    def classifier_info(self):
+        """Return the classifier info as a dict."""
+        return {
+            'classname': self.classname,
+            'subject': self.subject,
+            'roc': self.roc,
+            'auc': self.auc,
+            'params': json.dumps(self.params),
+        }
+
+    @property
     def version(self):
         """Generate a version string for the current class. Implementations
         are required to have a ``_version`` attribute.
@@ -208,13 +219,7 @@ class PickleSerializer(BaseSerializer):
     def serialize_impl(self, outfile):
         container = ClassifierContainer(
             classifier=self.classifier,
-            classifier_info={
-                'classname': self.classname,
-                'subject': self.subject,
-                'roc': self.roc,
-                'auc': self.auc,
-                'params': json.dumps(self.params),
-            },
+            classifier_info=self.classifier_info,
             weights=self.weights,
             intercept=self.classifier.intercept_,
             powers=self.powers,
