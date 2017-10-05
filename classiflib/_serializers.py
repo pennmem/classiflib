@@ -82,9 +82,15 @@ class BaseSerializer(object):
 
         weights = []
         coefs = self.classifier.coef_.flatten()
+        pair_id = 0
         for i in range(len(coefs)):
-            f = frequencies[i % len(frequencies)]
-            weights += [(i, f, coefs[i])]
+            f_index = i % len(frequencies)
+            f = frequencies[f_index]
+
+            if f_index == 0 and i != 0:
+                pair_id += 1
+
+            weights += [(pair_id, f, coefs[i])]
         self.weights = np.rec.fromrecords(weights, dtype=dtypes.weights)
 
     @staticmethod
