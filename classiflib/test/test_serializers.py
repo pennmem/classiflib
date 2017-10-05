@@ -13,7 +13,7 @@ from sklearn.externals import joblib
 
 from classiflib import dtypes, __version__
 from classiflib.classifier import CLASSIFIER_VERSION
-from classiflib._serializers import BaseSerializer, PickleSerializer, HDF5Serializer
+from classiflib._serializers import BaseSerializer, PickleSerializer, HDF5Serializer, ZipSerializer
 
 
 @pytest.fixture
@@ -244,3 +244,20 @@ class TestHDF5Serializer:
 
         assert_equal(container.powers, self.mean_powers)
         assert_equal(container.frequencies, self.serializer.frequencies)
+
+
+@pytest.mark.only
+def test_zip_serializer():
+    import os
+
+    try:
+        os.remove('out.zip')
+    except:
+        pass
+
+    classifier = DummyClassifier()
+    serializer = ZipSerializer(classifier, single_pair(), mean_powers())
+    serializer.serialize('out.zip', overwrite=True)
+
+    container = ZipSerializer.deserialize('out.zip')
+    assert isinstance(container.classifier, DummyClassifier)

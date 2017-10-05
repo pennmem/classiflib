@@ -3,6 +3,8 @@ import os.path as osp
 from functools import partial
 import json
 from importlib import import_module
+from zipfile import ZipFile
+from io import BytesIO
 
 import numpy as np
 import h5py
@@ -159,6 +161,16 @@ class BaseSerializer(object):
             raise NotImplementedError("Serializers must contain a _version attribute")
         return "_".join([self.__class__.__name__, self._version])
 
+    @property
+    def versions(self):
+        return {
+            'classifier': CLASSIFIER_VERSION,
+            'classiflib': __version__,
+            'serialization': self._version,
+            'sklearn': sklearn_version
+        }
+
+
     def serialize_impl(self, outfile):
         """The method which implements the actual serialization. Must be defined
         in child classes.
@@ -225,12 +237,7 @@ class PickleSerializer(BaseSerializer):
             powers=self.powers,
             frequencies=self.frequencies,
             pairs=self.pairs,
-            versions={
-                'classifier': CLASSIFIER_VERSION,
-                'classiflib': __version__,
-                'serialization': self._version,
-                'sklearn': sklearn_version
-            }
+            versions=self.versions
         )
 
         joblib.dump(container, outfile)
@@ -378,4 +385,82 @@ class HDF5Serializer(BaseSerializer):
                 pairs=hfile['/pairs'].value,
                 versions=HDF5Serializer._group_to_dict(hfile, '/versions'),
                 timestamp=hfile.attrs['timestamp']
+            )
+
+
+class ZipSerializer(BaseSerializer):
+    """Serialize to a zip file."""
+    _version = "1.0.0"
+
+    def _npsave(self, array):
+        buf = BytesIO()
+        np.save(buf, array, allow_pickle=False)
+        return buf.getvalue()
+
+    def _zasave(self, zfile, name, array):
+        with zfile.open(name, 'w') as f:
+            f.write(self._npsave(array))
+
+    def _zjsave(self, zfile, name, dictionary):
+        with zfile.open(name, 'w') as f:
+            f.write(json.dumps(dictionary).encode())
+
+    def serialize_impl(self, outfile):
+        with ZipFile(outfile, 'w') as zfile:
+            zopen = partial(zfile.open, mode='w')
+            asave = partial(self._zasave, zfile)
+            jsave = partial(self._zjsave, zfile)
+
+            with zopen('metadata.json') as f:
+                f.write(json.dumps({
+                    'commit': git_revision(),
+                    'timestamp': self.timestamp
+                }).encode())
+
+            asave('/pairs', self.pairs)
+            jsave('/versions', self.versions)
+            jsave('/classifier/info', self.classifier_info)
+            asave('/classifier/intercept', self.classifier.intercept_)
+            asave('/classifier/mean_powers', self.powers)
+            asave('/classifier/weights', self.weights)
+            jsave('/classifier/params', self.params)
+
+    @staticmethod
+    def deserialize(infile):
+        with ZipFile(infile, 'r') as zfile:
+            def jload(name):
+                with zfile.open(name) as f:
+                    return json.loads(f.read())
+
+            def aload(name):
+                with zfile.open(name) as f:
+                    buf = BytesIO(f.read())
+                    buf.seek(0)
+                    return np.load(buf)
+
+            with zfile.open('metadata.json') as f:
+                metadata = json.loads(f.read())
+
+            versions = jload('/versions')
+            pairs = aload('/pairs')
+            classifier_info = jload('/classifier/info')
+            intercept = aload('/classifier/intercept')
+            powers = aload('/classifier/mean_powers')
+            weights = aload('/classifier/weights')
+
+            components = classifier_info['classname'].split('.')
+            params = json.loads(classifier_info['params'])
+            classname = components[-1]
+            module = import_module('.'.join(components[:-1]))
+            classifier = getattr(module, classname)(**params)
+
+            return ClassifierContainer(
+                classifier=classifier,
+                classifier_info=classifier_info,
+                weights=weights,
+                intercept=intercept,
+                powers=powers,
+                pairs=pairs,
+                versions=versions,
+                timestamp=metadata['timestamp']
             )
