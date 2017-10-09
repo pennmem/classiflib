@@ -398,12 +398,11 @@ class ZipSerializer(BaseSerializer):
         return buf.getvalue()
 
     def _zasave(self, zfile, name, array):
-        with zfile.open(name + '.npy', 'w') as f:
-            f.write(self._npsave(array))
+        zfile.writestr(name + '.npy', self._npsave(array))
 
     def _zjsave(self, zfile, name, dictionary):
-        with zfile.open(name + '.json', 'w') as f:
-            f.write(json.dumps(dictionary, indent=2, sort_keys=True).encode())
+        zfile.writestr(name + '.json',
+                       json.dumps(dictionary, indent=2, sort_keys=True).encode())
 
     def serialize_impl(self, outfile):
         with ZipFile(outfile, 'w') as zfile:
