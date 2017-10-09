@@ -3,7 +3,7 @@ import os.path as osp
 from functools import partial
 import json
 from importlib import import_module
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 from io import BytesIO
 
 import numpy as np
@@ -424,7 +424,7 @@ class ZipSerializer(BaseSerializer):
 
     @staticmethod
     def deserialize(infile):
-        with ZipFile(infile, 'r') as zfile:
+        with ZipFile(infile, 'r', compression=ZIP_DEFLATED) as zfile:
             def jload(name):
                 with zfile.open(name + '.json') as f:
                     return json.loads(f.read().decode())
@@ -448,6 +448,8 @@ class ZipSerializer(BaseSerializer):
             classname = components[-1]
             module = import_module('.'.join(components[:-1]))
             classifier = getattr(module, classname)(**params)
+            setattr(classifier, 'coef_', weights.values)
+            setattr(classifier, 'intercept_', intercept)
 
             return ClassifierContainer(
                 classifier=classifier,
