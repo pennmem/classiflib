@@ -5,6 +5,7 @@ import json
 from importlib import import_module
 from zipfile import ZipFile, ZIP_DEFLATED
 from io import BytesIO
+from numbers import Integral
 
 import numpy as np
 import h5py
@@ -128,8 +129,8 @@ class BaseSerializer(object):
                 return pairs
 
         for row in pairs:
-            assert isinstance(row[0], int)
-            assert isinstance(row[1], int)
+            assert isinstance(row[0], Integral)
+            assert isinstance(row[1], Integral)
             assert isinstance(row[2], str)
             assert isinstance(row[3], str)
 
