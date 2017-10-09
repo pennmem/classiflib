@@ -403,7 +403,7 @@ class ZipSerializer(BaseSerializer):
 
     def _zjsave(self, zfile, name, dictionary):
         with zfile.open(name + '.json', 'w') as f:
-            f.write(json.dumps(dictionary).encode())
+            f.write(json.dumps(dictionary, indent=2, sort_keys=True).encode())
 
     def serialize_impl(self, outfile):
         with ZipFile(outfile, 'w') as zfile:
@@ -413,7 +413,7 @@ class ZipSerializer(BaseSerializer):
             zfile.writestr('/metadata.json', json.dumps({
                 'commit': git_revision(),
                 'timestamp': self.timestamp
-            }).encode())
+            }, indent=2, sort_keys=True).encode())
 
             asave('/pairs', self.pairs)
             jsave('/versions', self.versions)
