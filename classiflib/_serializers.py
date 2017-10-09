@@ -427,7 +427,7 @@ class ZipSerializer(BaseSerializer):
         with ZipFile(infile, 'r') as zfile:
             def jload(name):
                 with zfile.open(name + '.json') as f:
-                    return json.loads(f.read())
+                    return json.loads(f.read().decode())
 
             def aload(name):
                 with zfile.open(name + '.npy') as f:
