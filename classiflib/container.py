@@ -85,16 +85,12 @@ class ClassifierContainer(object):
         * ``.zip`` -> zipped file (similar in structure to HDF5 format)
 
         """
-        from ._serializers import PickleSerializer, HDF5Serializer, ZipSerializer
+        from ._serializers import ext_to_class
 
         extension = filename.split('.')[-1]
 
         try:
-            SerializerClass = {
-                'pkl': PickleSerializer,
-                'h5': HDF5Serializer,
-                'zip': ZipSerializer,
-            }[extension]
+            SerializerClass = ext_to_class[extension]
         except KeyError:
             raise RuntimeError("Unknown file extension: " + extension)
 
@@ -118,15 +114,12 @@ class ClassifierContainer(object):
         filename : str
 
         """
-        from ._serializers import PickleSerializer, HDF5Serializer
+        from ._serializers import ext_to_class
 
         extension = filename.split('.')[-1]
 
         try:
-            loader = {
-                'pkl': PickleSerializer,
-                'h5': HDF5Serializer
-            }[extension]
+            loader = ext_to_class[extension]
         except KeyError:
             raise RuntimeError("Unknown file extension: " + extension)
 

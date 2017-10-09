@@ -459,3 +459,11 @@ class ZipSerializer(BaseSerializer):
                 versions=versions,
                 timestamp=metadata['timestamp']
             )
+
+
+# Mapping of file extensions to serializers
+ext_to_class = {
+    'pkl': PickleSerializer,
+    'h5': HDF5Serializer,
+    'zip': ZipSerializer,
+}
