@@ -453,6 +453,7 @@ class ZipSerializer(BaseSerializer):
             module = import_module('.'.join(components[:-1]))
             classifier = getattr(module, classname)(**params)
             setattr(classifier, 'coef_', weights.value)
+            classifier.coef_.shape = (1, len(classifier.coef_))
             setattr(classifier, 'intercept_', intercept)
 
             return ClassifierContainer(
