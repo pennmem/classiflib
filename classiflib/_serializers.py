@@ -433,7 +433,11 @@ class ZipSerializer(BaseSerializer):
                 with zfile.open(name + '.npy') as f:
                     buf = BytesIO(f.read())
                     buf.seek(0)
-                    return np.load(buf)
+                    data = np.load(buf)
+                    if len(data.dtype):
+                        return data.view(data.dtype, np.rec.recarray)
+                    else:
+                        return data
 
             metadata = jload('/metadata')
             versions = jload('/versions')
@@ -448,7 +452,7 @@ class ZipSerializer(BaseSerializer):
             classname = components[-1]
             module = import_module('.'.join(components[:-1]))
             classifier = getattr(module, classname)(**params)
-            setattr(classifier, 'coef_', weights.values)
+            setattr(classifier, 'coef_', weights.value)
             setattr(classifier, 'intercept_', intercept)
 
             return ClassifierContainer(
