@@ -1,6 +1,12 @@
 classiflib
 ==========
 
+Serialization format
+--------------------
+
+.. image:: serialization_spec.svg
+    :target: ../serialization_spec.svg
+
 Workflow
 --------
 
