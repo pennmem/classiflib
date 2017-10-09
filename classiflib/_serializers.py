@@ -493,9 +493,11 @@ class ZipSerializer(BaseSerializer):
 
             return ClassifierContainer(
                 classifier=classifier,
-                classifier_info=classifier_info,
+                events=aload('/classifier/training/events'),
+                sample_weight=aload('/classifier/training/sample_weight'),
                 weights=weights,
                 intercept=intercept,
+                classifier_info=classifier_info,
                 features=powers,
                 pairs=pairs,
                 versions=versions,
