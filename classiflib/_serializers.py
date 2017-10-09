@@ -32,8 +32,8 @@ class BaseSerializer(object):
         classifier. Each element of the list is a tuple of the following form:
         ``(contact1: int, contact2: int, label1: str, label2: str)``. Also can
         be a recarray with the dtype ``.dtypes.pairs``.
-    powers : np.ndarray
-        A MxN matrix of mean powers during training (M = number of events, N =
+    features : np.ndarray
+        A MxN matrix of features during training (M = number of events, N =
         number of features).
     frequencies : array-like
         List of frequencies used by the classifier.
@@ -60,14 +60,14 @@ class BaseSerializer(object):
         LogisticRegression,
     )
 
-    def __init__(self, classifier, pairs, powers, frequencies=FRDefaults.freqs,
+    def __init__(self, classifier, pairs, features, frequencies=FRDefaults.freqs,
                  roc=None, auc=None, subject="undefined", timestamp=None):
         self.classifier = self._validate_classifier(classifier)
         self.pairs = self._validate_pairs(pairs)
 
-        assert powers.shape[1] == len(pairs) * len(frequencies), \
+        assert features.shape[1] == len(pairs) * len(frequencies), \
             "Number of features doesn't match power matrix shape!"
-        self.powers = powers
+        self.features = features
 
         self.roc = roc
         self.auc = auc
@@ -234,7 +234,7 @@ class PickleSerializer(BaseSerializer):
             classifier_info=self.classifier_info,
             weights=self.weights,
             intercept=self.classifier.intercept_,
-            powers=self.powers,
+            features=self.features,
             frequencies=self.frequencies,
             pairs=self.pairs,
             versions=self.versions
@@ -349,7 +349,7 @@ class HDF5Serializer(BaseSerializer):
 
     def add_powers(self, hfile):
         """Add mean powers."""
-        hfile.create_dataset('/classifier/mean_powers', data=self.powers, **self.__compression)
+        hfile.create_dataset('/classifier/mean_powers', data=self.features, **self.__compression)
 
     def add_frequencies(self, hfile):
         """Add a frequencies dataset."""
@@ -381,7 +381,7 @@ class HDF5Serializer(BaseSerializer):
                 classifier_info=classifier_info,
                 weights=hfile['/classifier/weights'].value,
                 intercept=hfile['/classifier/intercept'].value,
-                powers=hfile['/classifier/mean_powers'].value,
+                features=hfile['/classifier/mean_powers'].value,
                 pairs=hfile['/pairs'].value,
                 versions=HDF5Serializer._group_to_dict(hfile, '/versions'),
                 timestamp=hfile.attrs['timestamp']
@@ -418,7 +418,7 @@ class ZipSerializer(BaseSerializer):
             jsave('/versions', self.versions)
             jsave('/classifier/info', self.classifier_info)
             asave('/classifier/intercept', self.classifier.intercept_)
-            asave('/classifier/mean_powers', self.powers)
+            asave('/classifier/mean_powers', self.features)
             asave('/classifier/weights', self.weights)
             jsave('/classifier/params', self.params)
 
@@ -461,7 +461,7 @@ class ZipSerializer(BaseSerializer):
                 classifier_info=classifier_info,
                 weights=weights,
                 intercept=intercept,
-                powers=powers,
+                features=powers,
                 pairs=pairs,
                 versions=versions,
                 timestamp=metadata['timestamp']

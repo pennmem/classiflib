@@ -242,7 +242,7 @@ class TestHDF5Serializer:
         assert_equal(container.pairs.label1, pairs.label1)
         assert_equal(container.pairs.label2, pairs.label2)
 
-        assert_equal(container.powers, self.mean_powers)
+        assert_equal(container.features, self.mean_powers)
         assert_equal(container.frequencies, self.serializer.frequencies)
 
 
