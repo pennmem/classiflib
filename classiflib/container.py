@@ -30,6 +30,8 @@ class ClassifierContainer(object):
         Features matrix
     events : np.recarray
         Events associated with the features
+    sample_weight : np.ndarray
+        Sample weights used during training
     frequencies : np.ndarray
         Frequencies the classifier uses.
     weights : np.recarray
@@ -47,7 +49,7 @@ class ClassifierContainer(object):
         Unix time in seconds (current time if not given).
 
     """
-    def __init__(self, classifier, pairs, features, events=None,
+    def __init__(self, classifier, pairs, features, events=None, sample_weight=None,
                  frequencies=FRDefaults.freqs, weights=None, intercept=None,
                  classifier_info=_empty_classifier_info, versions=None,
                  timestamp=None):
@@ -61,6 +63,7 @@ class ClassifierContainer(object):
 
         self.features = features
         self.events = events
+        self.sample_weight = sample_weight
 
         self.frequencies = frequencies
         self.weights = weights

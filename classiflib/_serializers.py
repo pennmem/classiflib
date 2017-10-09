@@ -41,6 +41,8 @@ class BaseSerializer(object):
     events : np.recarray
         Event data. If given, the length must be the same as the first dimension
         of the features matrix.
+    sample_weight : np.ndarray
+        Sample weights used when training the classifier.
     roc : np.ndarray
         ROC curve data
     auc : float
@@ -65,8 +67,8 @@ class BaseSerializer(object):
     )
 
     def __init__(self, classifier, pairs, features, frequencies=FRDefaults.freqs,
-                 events=None, roc=None, auc=None, subject="undefined",
-                 timestamp=None):
+                 events=None, sample_weight=None, roc=None, auc=None,
+                 subject="undefined", timestamp=None):
         self.classifier = self._validate_classifier(classifier)
         self.pairs = self._validate_pairs(pairs)
 
@@ -79,6 +81,7 @@ class BaseSerializer(object):
                 "Number of events doesn't match feature matrix"
         self.events = events
 
+        self.sample_weight = sample_weight
         self.roc = roc
         self.auc = auc
         self.subject = subject
@@ -245,6 +248,7 @@ class PickleSerializer(BaseSerializer):
             pairs=self.pairs,
             features=self.features,
             events=self.events,
+            sample_weight=self.sample_weight,
             frequencies=self.frequencies,
             weights=self.weights,
             intercept=self.classifier.intercept_,
@@ -368,6 +372,11 @@ class HDF5Serializer(BaseSerializer):
         else:
             group.create_dataset('events', data=self.events, **self.__compression)
 
+        if self.sample_weight is None:
+            group.create_dataset('sample_weight', dtype=h5py.Empty('f'))
+        else:
+            group.create_dataset('sample_weight', data=self.sample_weight, **self.__compression)
+
     def add_features(self, hfile):
         """Add features."""
         hfile.create_dataset('/classifier/features', data=self.features, **self.__compression)
@@ -416,7 +425,7 @@ class ZipSerializer(BaseSerializer):
 
     def _npsave(self, array):
         buf = BytesIO()
-        np.save(buf, array, allow_pickle=False)
+        np.save(buf, array)
         return buf.getvalue()
 
     def _zasave(self, zfile, name, array):
@@ -438,11 +447,15 @@ class ZipSerializer(BaseSerializer):
 
             asave('/pairs', self.pairs)
             jsave('/versions', self.versions)
+
             jsave('/classifier/info', self.classifier_info)
             asave('/classifier/intercept', self.classifier.intercept_)
             asave('/classifier/mean_powers', self.features)
             asave('/classifier/weights', self.weights)
             jsave('/classifier/params', self.params)
+
+            asave('/classifier/training/events', self.events)
+            asave('/classifier/training/sample_weight', self.sample_weight)
 
     @staticmethod
     def deserialize(infile):
