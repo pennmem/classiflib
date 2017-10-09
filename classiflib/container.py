@@ -106,8 +106,8 @@ class ClassifierContainer(object):
 
         serializer = SerializerClass(
             self.classifier, self.pairs, self.features, self.frequencies,
-            events=self.events, roc=roc, auc=auc, subject=subject,
-            timestamp=self.timestamp
+            events=self.events, sample_weight=self.sample_weight,
+            roc=roc, auc=auc, subject=subject, timestamp=self.timestamp
         )
 
         serializer.serialize(filename, overwrite=overwrite)
