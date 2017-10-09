@@ -118,12 +118,14 @@ class BaseSerializer(object):
         dtype = with_id(dtypes.pairs)
 
         if isinstance(pairs, np.recarray):
-            assert pairs.dtype == dtypes.pairs
-            rpairs = np.rec.fromrecords([
-                (i, row[0], row[1], row[2], row[3])
-                for i, row in enumerate(pairs)
-            ], dtype=dtype)
-            return rpairs
+            if pairs.dtype == dtypes.pairs:
+                rpairs = np.rec.fromrecords([
+                    (i, row[0], row[1], row[2], row[3])
+                    for i, row in enumerate(pairs)
+                ], dtype=dtype)
+                return rpairs
+            elif pairs.dtype == with_id(dtypes.pairs):
+                return pairs
 
         for row in pairs:
             assert isinstance(row[0], int)

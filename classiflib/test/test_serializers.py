@@ -35,6 +35,16 @@ class TestBaseSerializer:
     def setup_method(self, method):
         self.serializer = BaseSerializer(DummyClassifier(), [(0, 1, 'A0', 'A1')], mean_powers())
 
+    def test_pairs_validation(self, single_pair):
+        self.serializer._validate_pairs(single_pair)
+
+        ipairs = np.rec.fromrecords([
+            (i, row[0], row[1], row[2], row[3])
+            for i, row in enumerate(single_pair)
+        ], dtype=dtypes.with_id(dtypes.pairs))
+
+        self.serializer._validate_pairs(ipairs)
+
     def test_classifier_validation(self, mean_powers):
         class BadClassifier(object):
             pass
