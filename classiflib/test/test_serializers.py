@@ -163,10 +163,10 @@ class TestHDF5Serializer:
 
     def test_add_powers(self):
         with self.hfile() as hfile:
-            self.serializer.add_powers(hfile)
+            self.serializer.add_features(hfile)
 
         with self.hopen() as hfile:
-            assert_equal(hfile['/classifier/mean_powers'][:], self.mean_powers)
+            assert_equal(hfile['/classifier/features'][:], self.mean_powers)
 
     def test_add_classifier(self):
         roc = np.array([np.linspace(0, 1, 100), np.linspace(0, 1, 100)])
@@ -192,6 +192,18 @@ class TestHDF5Serializer:
 
             intercept = hfile['/classifier/intercept'][0]
             assert intercept == 0.
+
+    def test_add_training(self):
+        features = np.random.random((1000, 8))
+        events = np.random.random(len(features))
+        serializer = HDF5Serializer(DummyClassifier(), single_pair(), features,
+                                    events=events)
+
+        with self.hfile() as hfile:
+            serializer.add_training(hfile)
+
+        with self.hopen() as hfile:
+            assert_equal(hfile['/classifier/training/events'][:], events)
 
     @pytest.mark.parametrize('dtype', ['list', 'recarray'])
     @pytest.mark.parametrize('overwrite', [True, False])

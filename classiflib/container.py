@@ -28,6 +28,8 @@ class ClassifierContainer(object):
         Bipolar pairs used for training (dtype: ``classiflib.dtypes.pairs``)
     features : np.ndarray
         Features matrix
+    events : np.recarray
+        Events associated with the features
     frequencies : np.ndarray
         Frequencies the classifier uses.
     weights : np.recarray
@@ -45,8 +47,8 @@ class ClassifierContainer(object):
         Unix time in seconds (current time if not given).
 
     """
-    def __init__(self, classifier, pairs, features, frequencies=FRDefaults.freqs,
-                 weights=None, intercept=None,
+    def __init__(self, classifier, pairs, features, events=None,
+                 frequencies=FRDefaults.freqs, weights=None, intercept=None,
                  classifier_info=_empty_classifier_info, versions=None,
                  timestamp=None):
         self.classifier = classifier
@@ -58,6 +60,7 @@ class ClassifierContainer(object):
             self.pairs = pairs
 
         self.features = features
+        self.events = events
 
         self.frequencies = frequencies
         self.weights = weights
@@ -100,7 +103,8 @@ class ClassifierContainer(object):
 
         serializer = SerializerClass(
             self.classifier, self.pairs, self.features, self.frequencies,
-            roc=roc, auc=auc, subject=subject, timestamp=self.timestamp
+            events=self.events, roc=roc, auc=auc, subject=subject,
+            timestamp=self.timestamp
         )
 
         serializer.serialize(filename, overwrite=overwrite)

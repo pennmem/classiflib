@@ -37,6 +37,9 @@ class BaseSerializer(object):
         number of features).
     frequencies : array-like
         List of frequencies used by the classifier.
+    events : np.recarray
+        Event data. If given, the length must be the same as the first dimension
+        of the features matrix.
     roc : np.ndarray
         ROC curve data
     auc : float
@@ -61,13 +64,19 @@ class BaseSerializer(object):
     )
 
     def __init__(self, classifier, pairs, features, frequencies=FRDefaults.freqs,
-                 roc=None, auc=None, subject="undefined", timestamp=None):
+                 events=None, roc=None, auc=None, subject="undefined",
+                 timestamp=None):
         self.classifier = self._validate_classifier(classifier)
         self.pairs = self._validate_pairs(pairs)
 
         assert features.shape[1] == len(pairs) * len(frequencies), \
             "Number of features doesn't match power matrix shape!"
         self.features = features
+
+        if events is not None:
+            assert len(events) == len(self.features), \
+                "Number of events doesn't match feature matrix"
+        self.events = events
 
         self.roc = roc
         self.auc = auc
@@ -170,7 +179,6 @@ class BaseSerializer(object):
             'sklearn': sklearn_version
         }
 
-
     def serialize_impl(self, outfile):
         """The method which implements the actual serialization. Must be defined
         in child classes.
@@ -231,12 +239,13 @@ class PickleSerializer(BaseSerializer):
     def serialize_impl(self, outfile):
         container = ClassifierContainer(
             classifier=self.classifier,
-            classifier_info=self.classifier_info,
+            pairs=self.pairs,
+            features=self.features,
+            events=self.events,
+            frequencies=self.frequencies,
             weights=self.weights,
             intercept=self.classifier.intercept_,
-            features=self.features,
-            frequencies=self.frequencies,
-            pairs=self.pairs,
+            classifier_info=self.classifier_info,
             versions=self.versions
         )
 
@@ -347,9 +356,18 @@ class HDF5Serializer(BaseSerializer):
         else:
             info_group.create_dataset('auc', data=[self.auc], **self.__compression)
 
-    def add_powers(self, hfile):
-        """Add mean powers."""
-        hfile.create_dataset('/classifier/mean_powers', data=self.features, **self.__compression)
+    def add_training(self, hfile):
+        """Add training data."""
+        group = hfile.create_group('/classifier/training')
+
+        if self.events is None:
+            group.create_dataset('events', dtype=h5py.Empty('f'))
+        else:
+            group.create_dataset('events', data=self.events, **self.__compression)
+
+    def add_features(self, hfile):
+        """Add features."""
+        hfile.create_dataset('/classifier/features', data=self.features, **self.__compression)
 
     def add_frequencies(self, hfile):
         """Add a frequencies dataset."""
@@ -362,7 +380,8 @@ class HDF5Serializer(BaseSerializer):
             self.add_versions(hfile)
             self.add_pairs(hfile)
             self.add_classifier(hfile)
-            self.add_powers(hfile)
+            self.add_training(hfile)
+            self.add_features(hfile)
             self.add_frequencies(hfile)
 
     @staticmethod
@@ -381,7 +400,7 @@ class HDF5Serializer(BaseSerializer):
                 classifier_info=classifier_info,
                 weights=hfile['/classifier/weights'].value,
                 intercept=hfile['/classifier/intercept'].value,
-                features=hfile['/classifier/mean_powers'].value,
+                features=hfile['/classifier/features'].value,
                 pairs=hfile['/pairs'].value,
                 versions=HDF5Serializer._group_to_dict(hfile, '/versions'),
                 timestamp=hfile.attrs['timestamp']
