@@ -409,11 +409,13 @@ class HDF5Serializer(BaseSerializer):
 
             return ClassifierContainer(
                 classifier=classifier,
-                classifier_info=classifier_info,
+                pairs=hfile['/pairs'].value,
+                features=hfile['/classifier/features'].value,
+                events=hfile['/classifier/training/events'].value,
+                sample_weight=hfile['/classifier/training/sample_weight'].value,
                 weights=hfile['/classifier/weights'].value,
                 intercept=hfile['/classifier/intercept'].value,
-                features=hfile['/classifier/features'].value,
-                pairs=hfile['/pairs'].value,
+                classifier_info=classifier_info,
                 versions=HDF5Serializer._group_to_dict(hfile, '/versions'),
                 timestamp=hfile.attrs['timestamp']
             )
