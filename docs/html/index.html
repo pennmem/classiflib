@@ -274,7 +274,7 @@ bipolar pairs in the <code class="docutils literal"><span class="pre">weights</s
 <span id="api-reference"></span><h2>API reference<a class="headerlink" href="#module-classiflib.container" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="classiflib.container.ClassifierContainer">
-<em class="property">class </em><code class="descclassname">classiflib.container.</code><code class="descname">ClassifierContainer</code><span class="sig-paren">(</span><em>classifier</em>, <em>pairs</em>, <em>powers</em>, <em>frequencies=array([   6.</em>, <em>9.75368156</em>, <em>15.85571732</em>, <em>25.77526961</em>, <em>41.90062864</em>, <em>68.11423148</em>, <em>110.72742057</em>, <em>180.        ])</em>, <em>weights=None</em>, <em>intercept=None</em>, <em>classifier_info={‘classname’: None</em>, <em>’subject’: ‘undefined’</em>, <em>’roc’: None</em>, <em>’auc’: None</em>, <em>’params’: {}}</em>, <em>versions=None</em>, <em>timestamp=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/classiflib/container.html#ClassifierContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#classiflib.container.ClassifierContainer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">classiflib.container.</code><code class="descname">ClassifierContainer</code><span class="sig-paren">(</span><em>classifier</em>, <em>pairs</em>, <em>features</em>, <em>events=None</em>, <em>sample_weight=None</em>, <em>frequencies=array([   6.</em>, <em>9.75368156</em>, <em>15.85571732</em>, <em>25.77526961</em>, <em>41.90062864</em>, <em>68.11423148</em>, <em>110.72742057</em>, <em>180.        ])</em>, <em>weights=None</em>, <em>intercept=None</em>, <em>classifier_info={‘classname’: None</em>, <em>’subject’: ‘undefined’</em>, <em>’roc’: None</em>, <em>’auc’: None</em>, <em>’params’: {}}</em>, <em>versions=None</em>, <em>timestamp=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/classiflib/container.html#ClassifierContainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#classiflib.container.ClassifierContainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Container carrying a classifier and associated data. This is used as the
 serializer-neutral object that is returned when deserializing and should not
 need to be instantiated directly. All parameters become attributes of the
@@ -286,7 +286,9 @@ same name.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>classifier</strong> (<em>BaseEstimator</em>) – The classifier object</li>
 <li><strong>pairs</strong> (<em>np.recarray</em>) – Bipolar pairs used for training (dtype: <code class="docutils literal"><span class="pre">classiflib.dtypes.pairs</span></code>)</li>
-<li><strong>powers</strong> (<em>np.ndarray</em>) – Mean powers matrix</li>
+<li><strong>features</strong> (<em>np.ndarray</em>) – Features matrix</li>
+<li><strong>events</strong> (<em>np.recarray</em>) – Events associated with the features</li>
+<li><strong>sample_weight</strong> (<em>np.ndarray</em>) – Sample weights used during training</li>
 <li><strong>frequencies</strong> (<em>np.ndarray</em>) – Frequencies the classifier uses.</li>
 <li><strong>weights</strong> (<em>np.recarray</em>) – Weights (dtype: <code class="docutils literal"><span class="pre">classiflib.dtypes.weights</span></code>). <code class="docutils literal"><span class="pre">None</span></code> if creating a
 container for serialization.</li>

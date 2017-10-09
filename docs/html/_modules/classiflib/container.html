@@ -181,8 +181,12 @@
 <span class="sd">        The classifier object</span>
 <span class="sd">    pairs : np.recarray</span>
 <span class="sd">        Bipolar pairs used for training (dtype: ``classiflib.dtypes.pairs``)</span>
-<span class="sd">    powers : np.ndarray</span>
-<span class="sd">        Mean powers matrix</span>
+<span class="sd">    features : np.ndarray</span>
+<span class="sd">        Features matrix</span>
+<span class="sd">    events : np.recarray</span>
+<span class="sd">        Events associated with the features</span>
+<span class="sd">    sample_weight : np.ndarray</span>
+<span class="sd">        Sample weights used during training</span>
 <span class="sd">    frequencies : np.ndarray</span>
 <span class="sd">        Frequencies the classifier uses.</span>
 <span class="sd">    weights : np.recarray</span>
@@ -200,8 +204,8 @@
 <span class="sd">        Unix time in seconds (current time if not given).</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">powers</span><span class="p">,</span> <span class="n">frequencies</span><span class="o">=</span><span class="n">FRDefaults</span><span class="o">.</span><span class="n">freqs</span><span class="p">,</span>
-                 <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intercept</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">events</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">frequencies</span><span class="o">=</span><span class="n">FRDefaults</span><span class="o">.</span><span class="n">freqs</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intercept</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">classifier_info</span><span class="o">=</span><span class="n">_empty_classifier_info</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">timestamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">classifier</span>
@@ -212,7 +216,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span> <span class="o">=</span> <span class="n">pairs</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">powers</span> <span class="o">=</span> <span class="n">powers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">events</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_weight</span> <span class="o">=</span> <span class="n">sample_weight</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span> <span class="o">=</span> <span class="n">frequencies</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
@@ -254,8 +260,9 @@
         <span class="n">subject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier_info</span><span class="p">[</span><span class="s1">&#39;subject&#39;</span><span class="p">]</span>
 
         <span class="n">serializer</span> <span class="o">=</span> <span class="n">SerializerClass</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">powers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span>
-            <span class="n">roc</span><span class="o">=</span><span class="n">roc</span><span class="p">,</span> <span class="n">auc</span><span class="o">=</span><span class="n">auc</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">timestamp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span>
+            <span class="n">events</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">,</span> <span class="n">roc</span><span class="o">=</span><span class="n">roc</span><span class="p">,</span> <span class="n">auc</span><span class="o">=</span><span class="n">auc</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span>
         <span class="p">)</span>
 
         <span class="n">serializer</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
