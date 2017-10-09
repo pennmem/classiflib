@@ -407,15 +407,13 @@ class ZipSerializer(BaseSerializer):
 
     def serialize_impl(self, outfile):
         with ZipFile(outfile, 'w') as zfile:
-            zopen = partial(zfile.open, mode='w')
             asave = partial(self._zasave, zfile)
             jsave = partial(self._zjsave, zfile)
 
-            with zopen('metadata.json') as f:
-                f.write(json.dumps({
-                    'commit': git_revision(),
-                    'timestamp': self.timestamp
-                }).encode())
+            zfile.writestr('/metadata.json', json.dumps({
+                'commit': git_revision(),
+                'timestamp': self.timestamp
+            }).encode())
 
             asave('/pairs', self.pairs)
             jsave('/versions', self.versions)
@@ -438,9 +436,7 @@ class ZipSerializer(BaseSerializer):
                     buf.seek(0)
                     return np.load(buf)
 
-            with zfile.open('metadata.json') as f:
-                metadata = json.loads(f.read())
-
+            metadata = jload('/metadata')
             versions = jload('/versions')
             pairs = aload('/pairs')
             classifier_info = jload('/classifier/info')

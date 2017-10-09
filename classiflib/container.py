@@ -82,9 +82,10 @@ class ClassifierContainer(object):
 
         * ``.pkl`` -> joblib pickling
         * ``.h5`` -> HDF5
+        * ``.zip`` -> zipped file (similar in structure to HDF5 format)
 
         """
-        from ._serializers import PickleSerializer, HDF5Serializer
+        from ._serializers import PickleSerializer, HDF5Serializer, ZipSerializer
 
         extension = filename.split('.')[-1]
 
@@ -92,6 +93,7 @@ class ClassifierContainer(object):
             SerializerClass = {
                 'pkl': PickleSerializer,
                 'h5': HDF5Serializer,
+                'zip': ZipSerializer,
             }[extension]
         except KeyError:
             raise RuntimeError("Unknown file extension: " + extension)
