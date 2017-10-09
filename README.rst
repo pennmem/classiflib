@@ -8,7 +8,7 @@ classiflib
    :target: https://codecov.io/gh/pennmem/classiflib
 
 .. image:: https://img.shields.io/badge/docs-here-blue.svg
-   :target: https://pennmem.github.io/pennmem/classiflib/html/index.html
+   :target: https://pennmem.github.io/classiflib/html/index.html
    :alt: docs
 
 Memory state classifier utilities
