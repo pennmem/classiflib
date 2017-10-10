@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>classiflib.container &mdash; classiflib 0.1.dev0 documentation</title>
+  <title>classiflib.container &mdash; classiflib 0.1.0 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../genindex.html"/>
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="classiflib 0.1.dev0 documentation" href="../../index.html"/>
+    <link rel="top" title="classiflib 0.1.0 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -154,6 +154,9 @@
             
   <h1>Source code for classiflib.container</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">osp</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span>
 
@@ -227,7 +230,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">versions</span> <span class="o">=</span> <span class="n">versions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="n">timestamp</span> <span class="ow">or</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
-<div class="viewcode-block" id="ClassifierContainer.save"><a class="viewcode-back" href="../../index.html#classiflib.container.ClassifierContainer.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ClassifierContainer.save"><a class="viewcode-back" href="../../index.html#classiflib.container.ClassifierContainer.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">create_directories</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Serialize to a file.</span>
 
 <span class="sd">        Parameters</span>
@@ -235,7 +238,10 @@
 <span class="sd">        filename : str</span>
 <span class="sd">            Output filename. The serializer used is determined by the extension.</span>
 <span class="sd">        overwrite : bool</span>
-<span class="sd">            Wether or not to overwrite an existing file (default: False)</span>
+<span class="sd">            Whether or not to overwrite an existing file (default: False)</span>
+<span class="sd">        create_directories : bool</span>
+<span class="sd">            Recursively create directories for the file if they don&#39;t already</span>
+<span class="sd">            exist.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -249,6 +255,13 @@
         <span class="kn">from</span> <span class="nn">._serializers</span> <span class="k">import</span> <span class="n">ext_to_class</span>
 
         <span class="n">extension</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dirs</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirs</span><span class="p">)</span> <span class="ow">and</span> <span class="n">create_directories</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="k">pass</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">SerializerClass</span> <span class="o">=</span> <span class="n">ext_to_class</span><span class="p">[</span><span class="n">extension</span><span class="p">]</span>
@@ -322,7 +335,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.1.dev0',
+            VERSION:'0.1.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

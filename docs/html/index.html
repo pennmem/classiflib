@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>classiflib &mdash; classiflib 0.1.dev0 documentation</title>
+  <title>classiflib &mdash; classiflib 0.1.0 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="classiflib 0.1.dev0 documentation" href="#"/> 
+    <link rel="top" title="classiflib 0.1.0 documentation" href="#"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -324,7 +324,7 @@ a container to be serialized).</li>
 
 <dl class="method">
 <dt id="classiflib.container.ClassifierContainer.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/classiflib/container.html#ClassifierContainer.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#classiflib.container.ClassifierContainer.save" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em>, <em>overwrite=False</em>, <em>create_directories=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/classiflib/container.html#ClassifierContainer.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#classiflib.container.ClassifierContainer.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serialize to a file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -332,7 +332,9 @@ a container to be serialized).</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>filename</strong> (<em>str</em>) – Output filename. The serializer used is determined by the extension.</li>
-<li><strong>overwrite</strong> (<em>bool</em>) – Wether or not to overwrite an existing file (default: False)</li>
+<li><strong>overwrite</strong> (<em>bool</em>) – Whether or not to overwrite an existing file (default: False)</li>
+<li><strong>create_directories</strong> (<em>bool</em>) – Recursively create directories for the file if they don’t already
+exist.</li>
 </ul>
 </td>
 </tr>
@@ -387,7 +389,7 @@ a container to be serialized).</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.dev0',
+            VERSION:'0.1.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
