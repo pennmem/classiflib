@@ -1,4 +1,7 @@
 import time
+import os
+import os.path as osp
+
 import numpy as np
 from sklearn.base import BaseEstimator
 
@@ -72,7 +75,7 @@ class ClassifierContainer(object):
         self.versions = versions
         self.timestamp = timestamp or time.time()
 
-    def save(self, filename, overwrite=False):
+    def save(self, filename, overwrite=False, create_directories=True):
         """Serialize to a file.
 
         Parameters
@@ -80,7 +83,10 @@ class ClassifierContainer(object):
         filename : str
             Output filename. The serializer used is determined by the extension.
         overwrite : bool
-            Wether or not to overwrite an existing file (default: False)
+            Whether or not to overwrite an existing file (default: False)
+        create_directories : bool
+            Recursively create directories for the file if they don't already
+            exist.
 
         Notes
         -----
@@ -94,6 +100,13 @@ class ClassifierContainer(object):
         from ._serializers import ext_to_class
 
         extension = filename.split('.')[-1]
+        dirs = osp.dirname(filename)
+
+        if len(dirs) and create_directories:
+            try:
+                os.makedirs(dirs)
+            except OSError:
+                pass
 
         try:
             SerializerClass = ext_to_class[extension]

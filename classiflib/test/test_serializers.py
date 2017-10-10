@@ -268,7 +268,6 @@ class TestHDF5Serializer:
         assert_equal(container.frequencies, self.serializer.frequencies)
 
 
-@pytest.mark.only
 def test_zip_serializer():
     import os
 

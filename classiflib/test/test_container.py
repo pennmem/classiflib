@@ -1,3 +1,4 @@
+import os.path as osp
 import pytest
 import numpy as np
 from numpy.testing import assert_equal
@@ -32,7 +33,8 @@ def powers():
     return powers
 
 
-def test_save(classifier, pairs, powers):
+@pytest.mark.only
+def test_save(classifier, pairs, powers, tmpdir):
     """Test the default values for all optional parameters when serializing."""
     container = ClassifierContainer(classifier, pairs, powers)
 
@@ -54,3 +56,12 @@ def test_save(classifier, pairs, powers):
     assert_equal(loaded.frequencies, FRDefaults.freqs)
     assert_equal(loaded.weights.value, classifier.coef_.flatten())
     assert loaded.intercept == classifier.intercept_
+
+    # Test making directories
+    filename = str(tmpdir.join('some').join('path').join('out.zip'))
+
+    with pytest.raises(IOError):
+        container.save(filename, create_directories=False)
+
+    container.save(filename, create_directories=True)
+    assert osp.exists(filename)
