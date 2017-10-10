@@ -46,10 +46,10 @@ def make_timing_window(start, end, buffer):
 
 # Used for pair info
 pairs = np.dtype([
+    ('contact0', '<i8'),
     ('contact1', '<i8'),
-    ('contact2', '<i8'),
-    ('label1', '|S256'),
-    ('label2', '|S256')
+    ('label0', '|S256'),
+    ('label1', '|S256')
 ])
 
 # Classifier weights

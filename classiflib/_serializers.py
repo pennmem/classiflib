@@ -31,7 +31,7 @@ class BaseSerializer(object):
     pairs : list or np.recarray
         A list containing contact numbers and labels of the pairs used by the
         classifier. Each element of the list is a tuple of the following form:
-        ``(contact1: int, contact2: int, label1: str, label2: str)``. Also can
+        ``(contact0: int, contact1: int, label0: str, label1: str)``. Also can
         be a recarray with the dtype ``.dtypes.pairs``.
     features : np.ndarray
         A MxN matrix of features during training (M = number of events, N =
@@ -142,10 +142,10 @@ class BaseSerializer(object):
         rpairs.id = np.arange(size, dtype='<i8')
 
         for i in range(size):
-            rpairs.contact1[i] = pairs[i][0]
-            rpairs.contact2[i] = pairs[i][1]
-            rpairs.label1[i] = pairs[i][2]
-            rpairs.label2[i] = pairs[i][3]
+            rpairs.contact0[i] = pairs[i][0]
+            rpairs.contact1[i] = pairs[i][1]
+            rpairs.label0[i] = pairs[i][2]
+            rpairs.label1[i] = pairs[i][3]
 
         return rpairs
 

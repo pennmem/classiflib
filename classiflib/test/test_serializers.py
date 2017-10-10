@@ -166,10 +166,10 @@ class TestHDF5Serializer:
         with self.hopen() as hfile:
             for i, row in enumerate(hfile['/pairs']):
                 assert row['id'] == i
-                assert row['contact1'] == i
-                assert row['contact2'] == i + 1
-                assert row['label1'] == 'A{}'.format(i).encode()
-                assert row['label2'] == 'A{}'.format(i + 1).encode()
+                assert row['contact0'] == i
+                assert row['contact1'] == i + 1
+                assert row['label0'] == 'A{}'.format(i).encode()
+                assert row['label1'] == 'A{}'.format(i + 1).encode()
 
     def test_add_powers(self):
         with self.hfile() as hfile:
@@ -259,10 +259,10 @@ class TestHDF5Serializer:
         assert container.intercept == self.classifier.intercept_
 
         pairs = np.rec.fromrecords(self.pairs, dtype=dtypes.pairs)
+        assert_equal(container.pairs.contact0, pairs.contact0)
         assert_equal(container.pairs.contact1, pairs.contact1)
-        assert_equal(container.pairs.contact2, pairs.contact2)
+        assert_equal(container.pairs.label0, pairs.label0)
         assert_equal(container.pairs.label1, pairs.label1)
-        assert_equal(container.pairs.label2, pairs.label2)
 
         assert_equal(container.features, self.mean_powers)
         assert_equal(container.frequencies, self.serializer.frequencies)
