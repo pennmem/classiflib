@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
+from classiflib import __version__
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -17,7 +18,7 @@ setup_requirements = []
 
 setup(
     name='classiflib',
-    version='0.1.0',
+    version=__version__,
     description="Memory state classifier utilities",
     long_description=readme + '\n\n' + history,
     author="Penn Computational Memory Lab",
