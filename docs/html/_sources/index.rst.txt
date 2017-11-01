@@ -10,10 +10,22 @@ Serialization format
 Workflow
 --------
 
+Saving a classifier
+^^^^^^^^^^^^^^^^^^^
+
 * Train a ``LogisticRegression`` classifier from ``sklearn.linear_model``
 * Create a ``classiflib.ClassifierContainer`` to store the data required to
   recreate a trained classifier (this includes some extra metadata)
 * Save the container as a zip file (see API docs for other formats)
+
+Loading a classifier
+^^^^^^^^^^^^^^^^^^^^
+
+* Load with the :meth:`classiflib.ClassifierContainer.load` class method
+
+This automatically sets the weights and intercept, so no additional steps are
+required if the classifier does not need to be retrained on newly excluded
+pairs.
 
 Structured data types
 ---------------------

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>classiflib &mdash; classiflib 0.1.0 documentation</title>
+  <title>classiflib &mdash; classiflib 0.1.2 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="classiflib 0.1.0 documentation" href="#"/> 
+    <link rel="top" title="classiflib 0.1.2 documentation" href="#"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -92,7 +92,11 @@
               <div class="local-toc"><ul>
 <li><a class="reference internal" href="#">classiflib</a><ul>
 <li><a class="reference internal" href="#serialization-format">Serialization format</a></li>
-<li><a class="reference internal" href="#workflow">Workflow</a></li>
+<li><a class="reference internal" href="#workflow">Workflow</a><ul>
+<li><a class="reference internal" href="#saving-a-classifier">Saving a classifier</a></li>
+<li><a class="reference internal" href="#loading-a-classifier">Loading a classifier</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#structured-data-types">Structured data types</a></li>
 <li><a class="reference internal" href="#utilities">Utilities</a></li>
 <li><a class="reference internal" href="#experiment-defaults">Experiment defaults</a></li>
@@ -170,12 +174,24 @@
 </div>
 <div class="section" id="workflow">
 <h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="saving-a-classifier">
+<h3>Saving a classifier<a class="headerlink" href="#saving-a-classifier" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Train a <code class="docutils literal"><span class="pre">LogisticRegression</span></code> classifier from <code class="docutils literal"><span class="pre">sklearn.linear_model</span></code></li>
 <li>Create a <code class="docutils literal"><span class="pre">classiflib.ClassifierContainer</span></code> to store the data required to
 recreate a trained classifier (this includes some extra metadata)</li>
 <li>Save the container as a zip file (see API docs for other formats)</li>
 </ul>
+</div>
+<div class="section" id="loading-a-classifier">
+<h3>Loading a classifier<a class="headerlink" href="#loading-a-classifier" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Load with the <code class="xref py py-meth docutils literal"><span class="pre">classiflib.ClassifierContainer.load()</span></code> class method</li>
+</ul>
+<p>This automatically sets the weights and intercept, so no additional steps are
+required if the classifier does not need to be retrained on newly excluded
+pairs.</p>
+</div>
 </div>
 <div class="section" id="structured-data-types">
 <h2>Structured data types<a class="headerlink" href="#structured-data-types" title="Permalink to this headline">¶</a></h2>
@@ -389,7 +405,7 @@ exist.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.0',
+            VERSION:'0.1.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
