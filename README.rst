@@ -12,12 +12,11 @@ classiflib
    :alt: docs
 
 .. image:: https://img.shields.io/github/release/pennmem/classiflib.svg
-    :target:
+    :target: https://github.com/pennmem/classiflib/releases
     :alt: latest release on GitHub
 
 .. image:: https://img.shields.io/conda/v/pennmem/classiflib.svg
     :target: https://anaconda.org/pennmem/classiflib
     :alt: conda package
-
 
 Memory state classifier utilities
