@@ -3,6 +3,7 @@ import os
 import os.path as osp
 
 import numpy as np
+from numpy.testing import assert_equal, assert_almost_equal
 from sklearn.base import BaseEstimator
 
 from . import dtypes
@@ -74,6 +75,43 @@ class ClassifierContainer(object):
         self.classifier_info = classifier_info
         self.versions = versions
         self.timestamp = timestamp or time.time()
+
+    def __eq__(self, other):
+        """Check that containers are approximately equal. This uses numpy's
+        :func:`assert_almost_equal` function with the default tolerance where
+        applicable.
+
+        Parameters
+        ----------
+        other : ClassifierContainer
+
+        """
+        try:
+            assert_almost_equal(self.features, other.features)
+            assert_equal(self.events, other.events)
+
+            if self.sample_weight is None:
+                assert other.sample_weight is None
+            else:
+                assert_almost_equal(self.sample_weight, other.sample_weight)
+
+            assert_equal(self.frequencies, other.frequencies)
+
+            if self.weights is None:
+                assert other.weights is None
+            else:
+                assert_almost_equal(self.weights, other.weights)
+
+            if self.intercept is None:
+                assert other.intercept is None
+            else:
+                assert_almost_equal(self.intercept, other.intercept)
+
+            assert self.classifier_info['classname'] == other.classifier_info['classname']
+            assert self.classifier_info['params'] == other.classifier_info['params']
+        except AssertionError:
+            return False
+        return True
 
     def save(self, filename, overwrite=False, create_directories=True):
         """Serialize to a file.
