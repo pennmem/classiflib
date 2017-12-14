@@ -1,7 +1,10 @@
 *~
-out.pkl
-out.h5
+*.pkl
+*.h5
 .idea/
+.DS_Store
+out/
+*.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+from copy import deepcopy
 import os.path as osp
 import pytest
 import numpy as np
@@ -8,6 +10,12 @@ from sklearn.externals import joblib
 
 from classiflib import dtypes, FRDefaults
 from classiflib.container import ClassifierContainer
+
+
+@contextmanager
+def duplicate(c):
+    duplicated = deepcopy(c)
+    yield duplicated
 
 
 @pytest.fixture
@@ -33,7 +41,6 @@ def powers():
     return powers
 
 
-@pytest.mark.only
 def test_save(classifier, pairs, powers, tmpdir):
     """Test the default values for all optional parameters when serializing."""
     container = ClassifierContainer(classifier, pairs, powers)
@@ -65,3 +72,47 @@ def test_save(classifier, pairs, powers, tmpdir):
 
     container.save(filename, create_directories=True)
     assert osp.exists(filename)
+
+
+@pytest.mark.parametrize('sample_weight', [None, np.random.random((100,))])
+@pytest.mark.parametrize('weights', [None, np.random.random((100,))])
+@pytest.mark.parametrize('intercept', [None, np.random.random((1,))[0]])
+def test_compare(classifier, pairs, powers, sample_weight, weights, intercept):
+    container = ClassifierContainer(classifier, pairs, powers)
+
+    container.sample_weight = sample_weight
+    container.weights = weights
+    container.intercept = intercept
+
+    with duplicate(container) as copy:
+        assert container == copy
+
+    with duplicate(container) as copy:
+        copy.features += 1
+        assert container != copy
+
+    with duplicate(container) as copy:
+        pass  # FIXME: modify event
+
+    with duplicate(container) as copy:
+        copy.frequencies[-1] = 10
+        assert container != copy
+
+    with duplicate(container) as copy:
+        if weights is None:
+            copy.weights = 10
+        else:
+            copy.weights[0] += 1
+        assert container != copy
+
+    with duplicate(container) as copy:
+        copy.intercept = 100
+        assert container != copy
+
+    with duplicate(container) as copy:
+        copy.classifier_info['classname'] = 'Nope'
+        assert container != copy
+
+    with duplicate(container) as copy:
+        copy.classifier_info['params'] = {'nonsense': 'a'}
+        assert container != copy
