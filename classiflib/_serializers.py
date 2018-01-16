@@ -429,9 +429,13 @@ class ZipSerializer(BaseSerializer):
 
     Notes
     -----
-    Version 1.1.0 of the zip serialization format saves events by extracting
-    string fields and storing separately. This allows for cross-Python-version
-    compatibility.
+    Version 1.1.0: Conditionally save/load things deemed "optional" by the base
+    serializer class. Use of pickling when saving numpy arrays is expressly
+    forbidden, so manipulations that can change dtypes (e.g., converting to and
+    from pandas DataFrames) must take care prior to storage.
+
+    Version 1.0.0: Recarrays are stored in pickled ``.npy`` format; this limits
+    loading to only the same version of Python and/or numpy.
 
     """
     _version = "1.1.0"
@@ -450,53 +454,55 @@ class ZipSerializer(BaseSerializer):
         zfile.writestr(name + '.json',
                        json.dumps(dictionary, indent=2, sort_keys=True).encode())
 
-    def _zrasave(self, zfile, name, array):
-        """Saves a recarray to the zip archive.
+    # commented out since not needed after all but something like it might be in
+    # the future -- MVD 2018-01-16
+    # def _zrasave(self, zfile, name, array):
+    #     """Saves a recarray to the zip archive.
 
-        This is treated separately from other arrays because string dtypes
-        can't be saved without pickling and thus will break across Python
-        versions.
+    #     This is treated separately from other arrays because string dtypes
+    #     can't be saved without pickling and thus will break across Python
+    #     versions.
 
-        """
-        # Find all string dtypes
-        bytes_cols = []
-        string_cols = []
-        numeric_cols = []
-        for field in array.dtype.names:
-            if array[field].dtype.char == 'S':
-                bytes_cols.append(field)
-            elif array[field].dtype.char == 'U':
-                string_cols.append(field)
-            else:
-                numeric_cols.append(field)
+    #     """
+    #     # Find all string dtypes
+    #     bytes_cols = []
+    #     string_cols = []
+    #     numeric_cols = []
+    #     for field in array.dtype.names:
+    #         if array[field].dtype.char == 'S':
+    #             bytes_cols.append(field)
+    #         elif array[field].dtype.char == 'U':
+    #             string_cols.append(field)
+    #         else:
+    #             numeric_cols.append(field)
 
-        # Remove them from events and save
-        rest = array[numeric_cols]
-        zfile.writestr(name + '.npy', self._npsave(rest))
+    #     # Remove them from events and save
+    #     rest = array[numeric_cols]
+    #     zfile.writestr(name + '.npy', self._npsave(rest))
 
-        # Write string columns to a JSON file
-        output = {
-            col: [b.decode() for b in array[col]]
-            for col in bytes_cols
-        }
-        output.update({
-            col: [s for s in array[col]]
-            for col in string_cols
-        })
-        self._zjsave(zfile, name, output)
+    #     # Write string columns to a JSON file
+    #     output = {
+    #         col: [b.decode() for b in array[col]]
+    #         for col in bytes_cols
+    #     }
+    #     output.update({
+    #         col: [s for s in array[col]]
+    #         for col in string_cols
+    #     })
+    #     self._zjsave(zfile, name, output)
 
     def serialize_impl(self, outfile):
         with ZipFile(outfile, 'w') as zfile:
             asave = partial(self._zasave, zfile)
             jsave = partial(self._zjsave, zfile)
-            rasave = partial(self._zrasave, zfile)
+            # rasave = partial(self._zrasave, zfile)
 
             zfile.writestr('/metadata.json', json.dumps({
                 'commit': git_revision(),
                 'timestamp': self.timestamp
             }, indent=2, sort_keys=True).encode())
 
-            rasave('/pairs', self.pairs)
+            asave('/pairs', self.pairs)
             jsave('/versions', self.versions)
 
             jsave('/classifier/info', self.classifier_info)
@@ -507,7 +513,7 @@ class ZipSerializer(BaseSerializer):
 
             if self.events is not None:
                 logger.warning('No events given; saving without')
-                rasave('/classifier/training/events', self.events)
+                asave('/classifier/training/events', self.events)
 
             if self.sample_weight is not None:
                 logger.warning('No sample weights given; saving without')
@@ -521,14 +527,18 @@ class ZipSerializer(BaseSerializer):
                     return json.loads(f.read().decode())
 
             def aload(name):
-                with zfile.open(name + '.npy') as f:
-                    buf = BytesIO(f.read())
-                    buf.seek(0)
-                    data = np.load(buf)
-                    if len(data.dtype):
-                        return data.view(data.dtype, np.rec.recarray)
-                    else:
-                        return data
+                try:
+                    with zfile.open(name + '.npy') as f:
+                        buf = BytesIO(f.read())
+                        buf.seek(0)
+                        data = np.load(buf)
+                        if len(data.dtype):
+                            return data.view(data.dtype, np.rec.recarray)
+                        else:
+                            return data
+                except:
+                    logger.warning("Could not load %s", name)
+                    return None
 
             metadata = jload('/metadata')
             versions = jload('/versions')
