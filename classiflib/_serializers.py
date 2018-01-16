@@ -422,25 +422,65 @@ class HDF5Serializer(BaseSerializer):
 
 
 class ZipSerializer(BaseSerializer):
-    """Serialize to a zip file."""
-    _version = "1.0.0"
+    """Serialize to a zip file.
+
+    Notes
+    -----
+    Version 1.1.0 of the zip serialization format saves events by extracting
+    string fields and storing separately. This allows for cross-Python-version
+    compatibility.
+
+    """
+    _version = "1.1.0"
 
     def _npsave(self, array):
         buf = BytesIO()
-        np.save(buf, array)
+        np.save(buf, array, allow_pickle=False)
         return buf.getvalue()
 
     def _zasave(self, zfile, name, array):
+        """Saves a numpy array to the zip archive."""
         zfile.writestr(name + '.npy', self._npsave(array))
 
     def _zjsave(self, zfile, name, dictionary):
+        """Saves a JSON string to the zip archive."""
         zfile.writestr(name + '.json',
                        json.dumps(dictionary, indent=2, sort_keys=True).encode())
+
+    def _zesave(self, zfile, name, array):
+        """Saves the events recarray to the zip archive.
+
+        This is treated separately from other arrays because string dtypes
+        can't be saved without pickling and thus will break across Python
+        versions.
+
+        """
+        # Find all string dtypes
+        non_string_cols = [
+            fname for fname in array.dtype.names
+            if array[fname].dtype != np.dtype('O')
+        ]
+        string_cols = [
+            fname for fname in array.dtype.names
+            if fname not in non_string_cols
+        ]
+
+        # Remove them from events and save
+        events = array[non_string_cols]
+        zfile.writestr(name + '.npy', self._npsave(array))
+
+        # Write string columns to a JSON file
+        output = {
+            col: [d.encode() for d in array[col]]
+            for col in string_cols
+        }
+        self._zjsave(zfile, name, output)
 
     def serialize_impl(self, outfile):
         with ZipFile(outfile, 'w') as zfile:
             asave = partial(self._zasave, zfile)
             jsave = partial(self._zjsave, zfile)
+            esave = partial(self._zesave, zfile)
 
             zfile.writestr('/metadata.json', json.dumps({
                 'commit': git_revision(),
@@ -456,7 +496,7 @@ class ZipSerializer(BaseSerializer):
             asave('/classifier/weights', self.weights)
             jsave('/classifier/params', self.params)
 
-            asave('/classifier/training/events', self.events)
+            esave('/classifier/training/events', self.events)
             asave('/classifier/training/sample_weight', self.sample_weight)
 
     @staticmethod
