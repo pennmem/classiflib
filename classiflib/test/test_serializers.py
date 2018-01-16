@@ -1,11 +1,13 @@
 from contextlib import contextmanager
 from io import BytesIO
 import json
+import random
+import string
 
-import pytest
+import h5py
 import numpy as np
 from numpy.testing import assert_equal
-import h5py
+import pytest
 
 from sklearn import __version__ as sklearn_version
 from sklearn.linear_model import LogisticRegression, SGDClassifier
@@ -15,6 +17,16 @@ from classiflib import dtypes, __version__
 from classiflib.classifier import CLASSIFIER_VERSION
 from classiflib._serializers import BaseSerializer, PickleSerializer, HDF5Serializer, ZipSerializer
 
+NUM_EVENTS = 1000
+NUM_FREQS = 8
+
+
+def randstr(max_chars=16):
+    return ''.join([
+        random.choice(string.printable)
+        for _ in range(random.randint(0, max_chars))
+    ])
+
 
 @pytest.fixture
 def single_pair():
@@ -23,7 +35,27 @@ def single_pair():
 
 @pytest.fixture
 def mean_powers():
-    return np.random.random((1000, 8))
+    return np.random.random((NUM_EVENTS, NUM_FREQS))
+
+
+@pytest.fixture
+def events():
+    data = []
+    for i in range(NUM_EVENTS):
+        data.append([
+            randstr(),
+            i,
+            np.random.random(),
+        ])
+
+    return np.rec.array(
+        data,
+        dtype=[
+            ('type', '<U256'),
+            ('id', '<i8'),
+            ('floats', '<f8'),
+        ]
+    )
 
 
 class DummyClassifier(LogisticRegression):
@@ -268,7 +300,8 @@ class TestHDF5Serializer:
         assert_equal(container.frequencies, self.serializer.frequencies)
 
 
-def test_zip_serializer():
+@pytest.mark.only
+def test_zip_serializer(events):
     import os
 
     try:
@@ -277,7 +310,8 @@ def test_zip_serializer():
         pass
 
     classifier = DummyClassifier()
-    serializer = ZipSerializer(classifier, single_pair(), mean_powers())
+    serializer = ZipSerializer(classifier, single_pair(), mean_powers(),
+                               events=events)
     serializer.serialize('out.zip', overwrite=True)
 
     container = ZipSerializer.deserialize('out.zip')

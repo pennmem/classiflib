@@ -1,11 +1,12 @@
-import time
-import os.path as osp
 from functools import partial
-import json
 from importlib import import_module
-from zipfile import ZipFile, ZIP_DEFLATED
 from io import BytesIO
+import json
+import logging
 from numbers import Integral
+import os.path as osp
+import time
+from zipfile import ZipFile, ZIP_DEFLATED
 
 import numpy as np
 import h5py
@@ -19,6 +20,8 @@ from .defaults import FRDefaults
 from .classifier import CLASSIFIER_VERSION
 from .container import ClassifierContainer
 from .util import git_revision
+
+logger = logging.getLogger(__name__)
 
 
 class BaseSerializer(object):
@@ -447,8 +450,8 @@ class ZipSerializer(BaseSerializer):
         zfile.writestr(name + '.json',
                        json.dumps(dictionary, indent=2, sort_keys=True).encode())
 
-    def _zesave(self, zfile, name, array):
-        """Saves the events recarray to the zip archive.
+    def _zrasave(self, zfile, name, array):
+        """Saves a recarray to the zip archive.
 
         This is treated separately from other arrays because string dtypes
         can't be saved without pickling and thus will break across Python
@@ -456,38 +459,44 @@ class ZipSerializer(BaseSerializer):
 
         """
         # Find all string dtypes
-        non_string_cols = [
-            fname for fname in array.dtype.names
-            if array[fname].dtype != np.dtype('O')
-        ]
-        string_cols = [
-            fname for fname in array.dtype.names
-            if fname not in non_string_cols
-        ]
+        bytes_cols = []
+        string_cols = []
+        numeric_cols = []
+        for field in array.dtype.names:
+            if array[field].dtype.char == 'S':
+                bytes_cols.append(field)
+            elif array[field].dtype.char == 'U':
+                string_cols.append(field)
+            else:
+                numeric_cols.append(field)
 
         # Remove them from events and save
-        events = array[non_string_cols]
-        zfile.writestr(name + '.npy', self._npsave(array))
+        rest = array[numeric_cols]
+        zfile.writestr(name + '.npy', self._npsave(rest))
 
         # Write string columns to a JSON file
         output = {
-            col: [d.encode() for d in array[col]]
-            for col in string_cols
+            col: [b.decode() for b in array[col]]
+            for col in bytes_cols
         }
+        output.update({
+            col: [s for s in array[col]]
+            for col in string_cols
+        })
         self._zjsave(zfile, name, output)
 
     def serialize_impl(self, outfile):
         with ZipFile(outfile, 'w') as zfile:
             asave = partial(self._zasave, zfile)
             jsave = partial(self._zjsave, zfile)
-            esave = partial(self._zesave, zfile)
+            rasave = partial(self._zrasave, zfile)
 
             zfile.writestr('/metadata.json', json.dumps({
                 'commit': git_revision(),
                 'timestamp': self.timestamp
             }, indent=2, sort_keys=True).encode())
 
-            asave('/pairs', self.pairs)
+            rasave('/pairs', self.pairs)
             jsave('/versions', self.versions)
 
             jsave('/classifier/info', self.classifier_info)
@@ -496,8 +505,13 @@ class ZipSerializer(BaseSerializer):
             asave('/classifier/weights', self.weights)
             jsave('/classifier/params', self.params)
 
-            esave('/classifier/training/events', self.events)
-            asave('/classifier/training/sample_weight', self.sample_weight)
+            if self.events is not None:
+                logger.warning('No events given; saving without')
+                rasave('/classifier/training/events', self.events)
+
+            if self.sample_weight is not None:
+                logger.warning('No sample weights given; saving without')
+                asave('/classifier/training/sample_weight', self.sample_weight)
 
     @staticmethod
     def deserialize(infile):
