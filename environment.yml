@@ -1,0 +1,6 @@
+dependencies:
+  - python
+  - numpy>=1.13
+  - h5py
+  - pandas
+  - scikit-learn
