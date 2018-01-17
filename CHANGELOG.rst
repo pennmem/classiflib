@@ -1,6 +1,15 @@
 Changes
 =======
 
+Version 1.0.0
+-------------
+
+**2018-01-17**
+
+* Implemented ``__eq__`` method for ``ClassifierContainer`` for quick
+  comparisons (#4)
+* Ensured that the ``ZipSerializer`` never pickles numpy arrays (#7)
+
 Version 0.1.2
 -------------
 

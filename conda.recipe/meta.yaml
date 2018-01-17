@@ -1,6 +1,6 @@
 package:
   name: classiflib
-  version: 0.1.2
+  version: 1.0.0
 source:
   git_url: ../
 
@@ -15,7 +15,6 @@ build:
 
 requirements:
   build:
-    # We default to Python 3.6 if no environment variable is set
     - python {{ python }}
     - numpy
     - h5py
