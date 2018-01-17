@@ -35,5 +35,6 @@ test:
 
 about:
   home: https://github.com/pennmem/classiflib
+  summary: Classifier serialization library
   # license: FIXME
   # license_file: FIXME
