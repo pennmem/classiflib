@@ -77,3 +77,14 @@ class OdinEmbeddedClassifier(Schema):
     stim_duration = traits.Int(desc='stim duration in ms')
     waveform_name = traits.Bytes(desc='associated waveform name', maxlen=32)
     stim_channel_name = traits.Bytes(desc='associated stim channel name', maxlen=32)
+
+
+class OdinEmbeddedChannel(Schema):
+    """Odin embedded mode channel specifications."""
+    label = traits.Bytes(desc="sense channel label", maxlen=32)
+    means = traits.Array(dtype=np.int16, shape=(8,),
+                         desc='raw means values per frequency')
+    sigmas = traits.Array(dtype=np.int16, shape=(8,),
+                          desc='raw standard deviations per frequency')
+    weights = traits.Array(dtype=np.float64, shape=(8,),
+                           desc='weights per frequency')
