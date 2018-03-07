@@ -1,6 +1,8 @@
 """Defines reusable dtypes for recarrays and HDF5 tables."""
 
 import numpy as np
+import traits.api as traits
+from traitschema import Schema
 
 
 def with_id(dtype, typestr='<i8', name='id'):
@@ -65,3 +67,13 @@ timing_window = np.dtype([
     ('end_time', '<f8'),
     ('buffer', '<f8')
 ])
+
+
+class OdinEmbeddedClassifier(Schema):
+    """General classifier settings for Odin embedded mode."""
+    averaging_interval = traits.Int(desc='averaging interval in ms')
+    refractory_period = traits.Int(desc='refractory period in ms')
+    threshold = traits.Int(desc='stim threshold in dB')
+    stim_duration = traits.Int(desc='stim duration in ms')
+    waveform_name = traits.Bytes(desc='associated waveform name', maxlen=32)
+    stim_channel_name = traits.Bytes(desc='associated stim channel name', maxlen=32)
