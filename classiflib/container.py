@@ -182,3 +182,45 @@ class ClassifierContainer(object):
             raise RuntimeError("Unknown file extension: " + extension)
 
         return loader.deserialize(filename)
+
+
+class OdinEmbeddedClassifierContainer(object):
+    """Container for Odin ENS embedded mode classifiers.
+
+    Parameters
+    ----------
+    subject : str
+        Subject code
+    channels : List[dtypes.OdinEmbeddedChannel]
+        Channel specifications. Must have 1-32 defined.
+    classifiers : List[dtypes.OdinEmbeddedClassifier]
+        Classifier specifications. Must have 0 (record-only mode), 1, or 2.
+    timestamp : float or None
+        Timestamp or None to use the current time.
+
+    Raises
+    ------
+    IndexError
+        If number of channels or classifiers is not within allowed limits.
+
+    """
+    def __init__(self, subject, channels, classifiers, timestamp=None):
+        # validate lengths
+        if not 0 < len(channels) <= 32:
+            raise IndexError("you must specify 1-32 channels")
+        if not 0 <= len(classifiers) <= 2:
+            raise IndexError("you must specify 0-2 classifiers")
+
+        self.subject = subject.encode('ascii')
+        self.channels = channels
+        self.classifiers = classifiers
+        self.timestamp = timestamp or time.time()
+
+    def save(self, filename, overwrite=False, create_directories=True):
+        """Serialize to a file."""
+        raise NotImplementedError
+
+    @classmethod
+    def load(cls, filename):
+        """Load a saved classifier."""
+        raise NotImplementedError
