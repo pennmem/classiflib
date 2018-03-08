@@ -9,7 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.externals import joblib
 
 from classiflib import dtypes, FRDefaults
-from classiflib.container import ClassifierContainer
+from classiflib.container import ClassifierContainer, OdinEmbeddedClassifierContainer
 
 
 @contextmanager
@@ -116,3 +116,58 @@ def test_compare(classifier, pairs, powers, sample_weight, weights, intercept):
     with duplicate(container) as copy:
         copy.classifier_info['params'] = {'nonsense': 'a'}
         assert container != copy
+
+
+@pytest.mark.odin_embedded
+class TestOdinEmbeddedContainer:
+    def test_create(self):
+        channels = []
+        classifiers = []
+        subject = b'R0001Q'
+
+        # neither channels nor classifiers specified
+        with pytest.raises(IndexError):
+            OdinEmbeddedClassifierContainer(channels, classifiers)
+
+        # too many channels
+        for n in range(33):
+            channels.append(
+                dtypes.OdinEmbeddedChannel(
+                    subject=subject,
+                    label='chan{}'.format(n).encode('ascii'),
+                    means=np.zeros(8, dtype=np.int16),
+                    sigmas=np.zeros(8, dtype=np.int16),
+                    weights=np.random.random(8),
+                )
+            )
+        with pytest.raises(IndexError):
+            OdinEmbeddedClassifierContainer(channels, classifiers)
+
+        # too many classifiers
+        for n in range(3):
+            classifiers.append(
+                dtypes.OdinEmbeddedClassifier(
+                    subject=subject,
+                    averaging_interval=1000,
+                    refractory_period=5000,
+                    threshold=-10,
+                    stim_duration=500,
+                    waveform_name='wvfm{}'.format(n).encode('ascii'),
+                    stim_channel_name='chan{}'.format(n).encode('ascii'),
+                )
+            )
+        with pytest.raises(IndexError):
+            OdinEmbeddedClassifierContainer(channels, classifiers)
+
+        # within limits
+        channels.pop()
+        classifiers.pop()
+        oecc = OdinEmbeddedClassifierContainer(channels, classifiers)
+
+        assert oecc.meta.subject == subject
+
+        for i, ch in enumerate(channels):
+            assert ch == oecc.channels[i]
+
+        for i, cl in enumerate(classifiers):
+            assert cl == oecc.classifiers[i]

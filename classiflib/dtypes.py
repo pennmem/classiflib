@@ -69,8 +69,15 @@ timing_window = np.dtype([
 ])
 
 
+class Meta(Schema):
+    """Meta info that can be stored in a schema bundle."""
+    subject = traits.Bytes(desc='subject code', maxlen=16)
+    timestamp = traits.Float(desc='unix timestamp')
+
+
 class OdinEmbeddedClassifier(Schema):
     """General classifier settings for Odin embedded mode."""
+    subject = traits.Bytes(desc='subject code', maxlen=16)
     averaging_interval = traits.Int(desc='averaging interval in ms')
     refractory_period = traits.Int(desc='refractory period in ms')
     threshold = traits.Int(desc='stim threshold in dB')
@@ -81,6 +88,7 @@ class OdinEmbeddedClassifier(Schema):
 
 class OdinEmbeddedChannel(Schema):
     """Odin embedded mode channel specifications."""
+    subject = traits.Bytes(desc='subject code', maxlen=16)
     label = traits.Bytes(desc="sense channel label", maxlen=32)
     means = traits.Array(dtype=np.int16, shape=(8,),
                          desc='raw means values per frequency')

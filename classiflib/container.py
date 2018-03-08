@@ -5,6 +5,7 @@ import os.path as osp
 import numpy as np
 from numpy.testing import assert_equal, assert_almost_equal
 from sklearn.base import BaseEstimator
+from traitschema import bundle_schema, load_bundle
 
 from . import dtypes
 from .defaults import FRDefaults
@@ -189,8 +190,6 @@ class OdinEmbeddedClassifierContainer(object):
 
     Parameters
     ----------
-    subject : str
-        Subject code
     channels : List[dtypes.OdinEmbeddedChannel]
         Channel specifications. Must have 1-32 defined.
     classifiers : List[dtypes.OdinEmbeddedClassifier]
@@ -204,23 +203,49 @@ class OdinEmbeddedClassifierContainer(object):
         If number of channels or classifiers is not within allowed limits.
 
     """
-    def __init__(self, subject, channels, classifiers, timestamp=None):
+    def __init__(self, channels, classifiers, timestamp=None):
         # validate lengths
         if not 0 < len(channels) <= 32:
             raise IndexError("you must specify 1-32 channels")
         if not 0 <= len(classifiers) <= 2:
             raise IndexError("you must specify 0-2 classifiers")
 
-        self.subject = subject.encode('ascii')
+        # ensure subjects match in all
+        subject = channels[0].subject
+        for ch in channels:
+            assert ch.subject == subject
+        for cl in classifiers:
+            assert cl.subject == subject
+
         self.channels = channels
         self.classifiers = classifiers
-        self.timestamp = timestamp or time.time()
+        self.meta = dtypes.Meta(subject=subject,
+                                timestamp=(timestamp or time.time()))
 
     def save(self, filename, overwrite=False, create_directories=True):
         """Serialize to a file."""
-        raise NotImplementedError
+        assert filename.endswith('.zip')
+
+        if osp.exists(filename) and not overwrite:
+            raise RuntimeError("{} already exists".format(filename))
+
+        if create_directories:
+            try:
+                os.makedirs(osp.dirname(filename))
+            except OSError:
+                pass
+
+        schema = {
+            'channels': self.channels,
+            'classifiers': self.classifiers,
+            'meta': self.meta,
+        }
+        bundle_schema(filename, schema)
 
     @classmethod
     def load(cls, filename):
         """Load a saved classifier."""
-        raise NotImplementedError
+        schema = load_bundle(filename)
+        return cls(schema['channels'],
+                   schema['classifiers'],
+                   schema['meta'].timestamp)
