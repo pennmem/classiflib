@@ -222,6 +222,15 @@ class OdinEmbeddedClassifierContainer(object):
         self.meta = dtypes.Meta(subject=subject,
                                 timestamp=(timestamp or time.time()))
 
+    def __eq__(self, other):
+        if not self.channels == other.channels:
+            return False
+        if not self.classifiers == other.classifiers:
+            return False
+        if not self.meta.timestamp == other.meta.timestamp:
+            return False
+        return True
+
     def save(self, filename, overwrite=False, create_directories=True):
         """Serialize to a file."""
         assert filename.endswith('.zip')
@@ -235,6 +244,7 @@ class OdinEmbeddedClassifierContainer(object):
             except OSError:
                 pass
 
+        # FIXME: need separate key for each channel, classifier
         schema = {
             'channels': self.channels,
             'classifiers': self.classifiers,
