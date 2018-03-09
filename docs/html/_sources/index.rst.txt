@@ -41,6 +41,28 @@ are defined in :mod:`classiflib.dtypes`:
           ``id`` column is automatically added. This is used to reference the
           bipolar pairs in the ``weights`` array.
 
+Odin embedded mode
+------------------
+
+Odin embedded mode data types use the :mod:`traitschema` package for easier
+serializability.
+
+.. autoclass:: classiflib.dtypes.OdinEmbeddedMeta
+    :members:
+
+.. autoclass:: classiflib.dtypes.OdinEmbeddedClassifier
+    :members:
+
+.. autoclass:: classiflib.dtypes.OdinEmbeddedChannel
+    :members:
+
+Rather than using :class:`classiflib.ClassifierContainer`, use
+:class:`classiflib.OdinEmbeddedClassifierContainer`:
+
+.. autoclass:: classiflib.container.OdinEmbeddedClassifierContainer
+    :members:
+
+
 Utilities
 ---------
 

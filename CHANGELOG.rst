@@ -1,6 +1,14 @@
 Changes
 =======
 
+Version 1.1.0
+-------------
+
+**2018-03-09**
+
+* Added a container for Odin embedded mode classifier data (#10)
+
+
 Version 1.0.0
 -------------
 
