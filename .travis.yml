@@ -25,6 +25,7 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy pandas h5py scikit-learn
   - source activate test-environment
   - pip install -r requirements.txt
+  - conda install -c pennmem traitschema
   - python setup.py install
 script:
   - python -m pytest
