@@ -5,6 +5,7 @@ import os.path as osp
 import numpy as np
 from numpy.testing import assert_equal, assert_almost_equal
 from sklearn.base import BaseEstimator
+from traitschema import bundle_schema, load_bundle
 
 from . import dtypes
 from .defaults import FRDefaults
@@ -182,3 +183,90 @@ class ClassifierContainer(object):
             raise RuntimeError("Unknown file extension: " + extension)
 
         return loader.deserialize(filename)
+
+
+class OdinEmbeddedClassifierContainer(object):
+    """Container for Odin ENS embedded mode classifiers.
+
+    Parameters
+    ----------
+    channels : List[dtypes.OdinEmbeddedChannel]
+        Channel specifications. Must have 1-32 defined.
+    classifiers : List[dtypes.OdinEmbeddedClassifier]
+        Classifier specifications. Must have 0 (record-only mode), 1, or 2.
+    timestamp : float or None
+        Timestamp or None to use the current time.
+
+    Raises
+    ------
+    IndexError
+        If number of channels or classifiers is not within allowed limits.
+
+    """
+    def __init__(self, channels, classifiers, timestamp=None):
+        # validate lengths
+        if not 0 < len(channels) <= 32:
+            raise IndexError("you must specify 1-32 channels")
+        if not 0 <= len(classifiers) <= 2:
+            raise IndexError("you must specify 0-2 classifiers")
+
+        # ensure subjects match in all
+        subject = channels[0].subject
+        for ch in channels:
+            assert ch.subject == subject
+        for cl in classifiers:
+            assert cl.subject == subject
+
+        self.channels = channels
+        self.classifiers = classifiers
+        self.meta = dtypes.OdinEmbeddedMeta(
+            subject=subject,
+            timestamp=(timestamp or time.time()),
+            num_channels=len(self.channels),
+            num_classifiers=len(self.classifiers)
+        )
+
+    def __eq__(self, other):
+        if not self.channels == other.channels:
+            return False
+        if not self.classifiers == other.classifiers:
+            return False
+        if not self.meta.timestamp == other.meta.timestamp:
+            return False
+        return True
+
+    def save(self, filename, overwrite=False, create_directories=True):
+        """Serialize to a file."""
+        assert filename.endswith('.zip')
+
+        if osp.exists(filename) and not overwrite:
+            raise RuntimeError("{} already exists".format(filename))
+
+        if create_directories:
+            try:
+                os.makedirs(osp.dirname(filename))
+            except OSError:
+                pass
+
+        schema = {'meta': self.meta}
+        schema.update({
+            'ch{}'.format(i): channel
+            for i, channel in enumerate(self.channels)
+        })
+        schema.update({
+            'classifier{}'.format(i): classifier
+            for i, classifier in enumerate(self.classifiers)
+        })
+        bundle_schema(filename, schema)
+
+    @classmethod
+    def load(cls, filename):
+        """Load a saved classifier."""
+        schema = load_bundle(filename)
+        num_channels = schema['meta'].num_channels
+        num_classifiers = schema['meta'].num_classifiers
+
+        channels = [schema['ch{}'.format(i)] for i in range(num_channels)]
+        classifiers = [schema['classifier{}'.format(i)] for i in range(num_classifiers)]
+
+        return cls(channels, classifiers, schema['meta'].timestamp)

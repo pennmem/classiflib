@@ -9,7 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.externals import joblib
 
 from classiflib import dtypes, FRDefaults
-from classiflib.container import ClassifierContainer
+from classiflib.container import ClassifierContainer, OdinEmbeddedClassifierContainer
 
 
 @contextmanager
@@ -116,3 +116,77 @@ def test_compare(classifier, pairs, powers, sample_weight, weights, intercept):
     with duplicate(container) as copy:
         copy.classifier_info['params'] = {'nonsense': 'a'}
         assert container != copy
+
+
+@pytest.mark.odin_embedded
+class TestOdinEmbeddedContainer:
+    @staticmethod
+    def make_channels(subject, count):
+        return [
+            dtypes.OdinEmbeddedChannel(
+                subject=subject,
+                label='chan{}'.format(i).encode('ascii'),
+                means=np.zeros(8, dtype=np.int16),
+                sigmas=np.zeros(8, dtype=np.int16),
+                weights=np.random.random(8),
+            )
+            for i in range(count)
+        ]
+
+    @staticmethod
+    def make_classifiers(subject, count):
+        return [
+            dtypes.OdinEmbeddedClassifier(
+                subject=subject,
+                averaging_interval=1000,
+                refractory_period=5000,
+                threshold=-10,
+                stim_duration=500,
+                waveform_name='wvfm{}'.format(i).encode('ascii'),
+                stim_channel_name='chan{}'.format(i).encode('ascii'),
+            )
+            for i in range(count)
+        ]
+
+    def test_create(self):
+        channels = []
+        classifiers = []
+        subject = b'R0001Q'
+
+        # neither channels nor classifiers specified
+        with pytest.raises(IndexError):
+            OdinEmbeddedClassifierContainer(channels, classifiers)
+
+        # too many channels
+        channels = self.make_channels(subject, 33)
+        with pytest.raises(IndexError):
+            OdinEmbeddedClassifierContainer(channels, classifiers)
+
+        # too many classifiers
+        classifiers = self.make_classifiers(subject, 3)
+        with pytest.raises(IndexError):
+            OdinEmbeddedClassifierContainer(channels, classifiers)
+
+        # within limits
+        channels.pop()
+        classifiers.pop()
+        oecc = OdinEmbeddedClassifierContainer(channels, classifiers)
+
+        assert oecc.meta.subject == subject
+
+        for i, ch in enumerate(channels):
+            assert ch == oecc.channels[i]
+
+        for i, cl in enumerate(classifiers):
+            assert cl == oecc.classifiers[i]
+
+    def test_save_load(self, tmpdir):
+        subject = b'R0001X'
+        channels = self.make_channels(subject, 32)
+        classifiers = self.make_classifiers(subject, 1)
+        filename = str(tmpdir.join('classifier.zip'))
+        cc = OdinEmbeddedClassifierContainer(channels, classifiers)
+        cc.save(filename)
+
+        other = OdinEmbeddedClassifierContainer.load(filename)
+        assert cc == other

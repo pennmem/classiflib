@@ -4,3 +4,5 @@ dependencies:
   - h5py
   - pandas
   - scikit-learn
+  - traits>=4.6
+  - traitschema>=1.2.0
