@@ -5,4 +5,4 @@ dependencies:
   - pandas
   - scikit-learn
   - traits>=4.6
-  - traitschema==1.2.0
+  - traitschema>=1.2.0
