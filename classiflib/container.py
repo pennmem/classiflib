@@ -219,8 +219,12 @@ class OdinEmbeddedClassifierContainer(object):
 
         self.channels = channels
         self.classifiers = classifiers
-        self.meta = dtypes.Meta(subject=subject,
-                                timestamp=(timestamp or time.time()))
+        self.meta = dtypes.OdinEmbeddedMeta(
+            subject=subject,
+            timestamp=(timestamp or time.time()),
+            num_channels=len(self.channels),
+            num_classifiers=len(self.classifiers)
+        )
 
     def __eq__(self, other):
         if not self.channels == other.channels:
@@ -244,18 +248,25 @@ class OdinEmbeddedClassifierContainer(object):
             except OSError:
                 pass
 
-        # FIXME: need separate key for each channel, classifier
-        schema = {
-            'channels': self.channels,
-            'classifiers': self.classifiers,
-            'meta': self.meta,
-        }
+        schema = {'meta': self.meta}
+        schema.update({
+            'ch{}'.format(i): channel
+            for i, channel in enumerate(self.channels)
+        })
+        schema.update({
+            'classifier{}'.format(i): classifier
+            for i, classifier in enumerate(self.classifiers)
+        })
         bundle_schema(filename, schema)
 
     @classmethod
     def load(cls, filename):
         """Load a saved classifier."""
         schema = load_bundle(filename)
-        return cls(schema['channels'],
-                   schema['classifiers'],
-                   schema['meta'].timestamp)
+        num_channels = schema['meta'].num_channels
+        num_classifiers = schema['meta'].num_classifiers
+
+        channels = [schema['ch{}'.format(i)] for i in range(num_channels)]
+        classifiers = [schema['classifier{}'.format(i)] for i in range(num_classifiers)]
+
+        return cls(channels, classifiers, schema['meta'].timestamp)
