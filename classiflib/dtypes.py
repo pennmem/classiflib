@@ -73,7 +73,9 @@ class OdinEmbeddedMeta(Schema):
     """OdinEmbeddedMeta info that can be stored in a schema bundle."""
     subject = traits.CBytes(desc='subject code', maxlen=16)
     timestamp = traits.CFloat(desc='unix timestamp')
-    num_channels = traits.CInt(desc='number of channels')
+    num_channels = traits.Array(dtype=int,
+                                desc=('number of channels for each classifier '
+                                      '(or in general for record-only mode)'))
     num_classifiers = traits.CInt(desc='number of classifiers')
 
 

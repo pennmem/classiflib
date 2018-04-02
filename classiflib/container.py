@@ -190,10 +190,14 @@ class OdinEmbeddedClassifierContainer(object):
 
     Parameters
     ----------
-    channels : List[dtypes.OdinEmbeddedChannel]
-        Channel specifications. Must have 1-32 defined.
+    channels : List[List[dtypes.OdinEmbeddedChannel]]
+        Channel specifications. Each entry is a list of channels associated with
+        each classifier (or just a list of channels for record-only mode). There
+        must be 1-32 channels defined.
+
     classifiers : List[dtypes.OdinEmbeddedClassifier]
         Classifier specifications. Must have 0 (record-only mode), 1, or 2.
+
     timestamp : float or None
         Timestamp or None to use the current time.
 
@@ -205,34 +209,44 @@ class OdinEmbeddedClassifierContainer(object):
     """
     def __init__(self, channels, classifiers, timestamp=None):
         # validate lengths
-        if not 0 < len(channels) <= 32:
-            raise IndexError("you must specify 1-32 channels")
+        if not 0 < len(channels) <= 2:
+            raise IndexError("you must specify 1-2 sets of channels")
         if not 0 <= len(classifiers) <= 2:
             raise IndexError("you must specify 0-2 classifiers")
+        for channelset in channels:
+            if not 0 < len(channelset) <= 32:
+                raise IndexError("you must specify 1-32 channels per classifier")
 
         # ensure subjects match in all
-        subject = channels[0].subject
-        for ch in channels:
-            assert ch.subject == subject
-        for cl in classifiers:
-            assert cl.subject == subject
+        subject = channels[0][0].subject
+        for channelset in channels:
+            for ch in channelset:
+                assert ch.subject == subject
+            for cl in classifiers:
+                assert cl.subject == subject
 
         self.channels = channels
         self.classifiers = classifiers
+
+        num_channels = [len(channelset) for channelset in self.channels]
+
         self.meta = dtypes.OdinEmbeddedMeta(
             subject=subject,
             timestamp=(timestamp or time.time()),
-            num_channels=len(self.channels),
+            num_channels=num_channels,
             num_classifiers=len(self.classifiers)
         )
 
     def __eq__(self, other):
-        if not self.channels == other.channels:
-            return False
         if not self.classifiers == other.classifiers:
             return False
         if not self.meta.timestamp == other.meta.timestamp:
             return False
+
+        for i, channelset in enumerate(self.channels):
+            if not channelset == other.channels[i]:
+                return False
+
         return True
 
     def save(self, filename, overwrite=False, create_directories=True):
@@ -249,14 +263,20 @@ class OdinEmbeddedClassifierContainer(object):
                 pass
 
         schema = {'meta': self.meta}
-        schema.update({
-            'ch{}'.format(i): channel
-            for i, channel in enumerate(self.channels)
-        })
-        schema.update({
-            'classifier{}'.format(i): classifier
-            for i, classifier in enumerate(self.classifiers)
-        })
+
+        for i in range(max(len(self.classifiers), 1)):
+            try:
+                schema.update({
+                    'classifier{}'.format(i): self.classifiers[i]
+                })
+            except IndexError:
+                pass
+
+            schema.update({
+                'classifier{}_ch{}'.format(i, j): channel
+                for j, channel in enumerate(self.channels[i])
+            })
+
         bundle_schema(filename, schema)
 
     @classmethod
@@ -266,7 +286,13 @@ class OdinEmbeddedClassifierContainer(object):
         num_channels = schema['meta'].num_channels
         num_classifiers = schema['meta'].num_classifiers
 
-        channels = [schema['ch{}'.format(i)] for i in range(num_channels)]
+        channels = []
+        for i in range(max(num_classifiers, 1)):
+            channels.append([
+                schema['classifier{}_ch{}'.format(i, j)]
+                for j in range(num_channels[i])
+            ])
+
         classifiers = [schema['classifier{}'.format(i)] for i in range(num_classifiers)]
 
         return cls(channels, classifiers, schema['meta'].timestamp)

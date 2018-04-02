@@ -168,7 +168,7 @@ class TestOdinEmbeddedContainer:
             OdinEmbeddedClassifierContainer(channels, classifiers)
 
         # within limits
-        channels.pop()
+        channels = [self.make_channels(subject, 32)]
         classifiers.pop()
         oecc = OdinEmbeddedClassifierContainer(channels, classifiers)
 
@@ -180,10 +180,13 @@ class TestOdinEmbeddedContainer:
         for i, cl in enumerate(classifiers):
             assert cl == oecc.classifiers[i]
 
-    def test_save_load(self, tmpdir):
+    @pytest.mark.parametrize('num_classifiers', [0, 1, 2])
+    def test_save_load(self, tmpdir, num_classifiers):
         subject = b'R0001X'
-        channels = self.make_channels(subject, 32)
-        classifiers = self.make_classifiers(subject, 1)
+
+        num_channelsets = num_classifiers if num_classifiers > 0 else 1
+        channels = [self.make_channels(subject, 32) for _ in range(num_channelsets)]
+        classifiers = self.make_classifiers(subject, num_classifiers)
         filename = str(tmpdir.join('classifier.zip'))
         cc = OdinEmbeddedClassifierContainer(channels, classifiers)
         cc.save(filename)
