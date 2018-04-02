@@ -4,10 +4,10 @@ Changes
 Version 1.2.0
 -------------
 
-**Upcoming**
+**2018-04-02**
 
 * Made ``OdinEmbeddedClassifierContainer`` require a list of lists for channel
-  specifications.
+  specifications to support up to 2 classifiers (#12)
 
 
 Version 1.1.0
