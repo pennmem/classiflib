@@ -15,4 +15,4 @@ except OSError:
 
 build_cmd = "conda build conda.recipe --output-folder build/"
 print(build_cmd)
-check_call(shlex.split(build_cmd))
+check_call(build_cmd, shell=True)

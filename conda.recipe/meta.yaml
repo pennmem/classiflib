@@ -20,12 +20,14 @@ requirements:
     - h5py
     - scikit-learn
     - setuptools
+    - traits
 
   run:
     - python {{ python }}
     - numpy
     - h5py
     - scikit-learn
+    - traits
     # - vs2015_runtime  [win]
 
 test:
