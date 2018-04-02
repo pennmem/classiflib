@@ -1,3 +1,5 @@
+import pytest
+
 from classiflib.dtypes import *
 
 
@@ -19,20 +21,21 @@ def test_make_timing_window():
     assert window.buffer == 1.365
 
 
-def test_oe_classifier():
-    OdinEmbeddedClassifier(
-        averaging_interval=1366,
-        refractory_period=1000,
-        threshold=1,
-        waveform_name=b'wvfm1',
-        stim_channel_name=b'LTC1LTC2'
-    )
+@pytest.mark.odin_embedded
+class TestEmbeddedDtypes:
+    def test_oe_classifier(self):
+        OdinEmbeddedClassifier(
+            averaging_interval=1366,
+            refractory_period=1000,
+            threshold=1,
+            waveform_name=b'wvfm1',
+            stim_channel_name=b'LTC1LTC2'
+        )
 
-
-def test_oe_channel():
-    OdinEmbeddedChannel(
-        label=b'LA1LA2',
-        means=np.linspace(0, 8, 8, dtype=np.int16),
-        sigmas=np.linspace(0, 8, 8, dtype=np.int16),
-        weights=np.random.random((8,))
-    )
+    def test_oe_channel(self):
+        OdinEmbeddedChannel(
+            label=b'LA1LA2',
+            means=np.linspace(0, 8, 8, dtype=np.int16),
+            sigmas=np.linspace(0, 8, 8, dtype=np.int16),
+            weights=np.random.random((8,))
+        )
