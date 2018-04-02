@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>classiflib.dtypes &mdash; classiflib 1.1.0 documentation</title>
+  <title>classiflib.dtypes &mdash; classiflib 1.2.0 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../genindex.html"/>
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="classiflib 1.1.0 documentation" href="../../index.html"/>
+    <link rel="top" title="classiflib 1.2.0 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -226,31 +226,62 @@
 
 <div class="viewcode-block" id="OdinEmbeddedMeta"><a class="viewcode-back" href="../../index.html#classiflib.dtypes.OdinEmbeddedMeta">[docs]</a><span class="k">class</span> <span class="nc">OdinEmbeddedMeta</span><span class="p">(</span><span class="n">Schema</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;OdinEmbeddedMeta info that can be stored in a schema bundle.&quot;&quot;&quot;</span>
+    <span class="c1">#: Subject code</span>
     <span class="n">subject</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CBytes</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;subject code&#39;</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+    <span class="c1">#: Time of creation</span>
     <span class="n">timestamp</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CFloat</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;unix timestamp&#39;</span><span class="p">)</span>
-    <span class="n">num_channels</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CInt</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;number of channels&#39;</span><span class="p">)</span></div>
+
+    <span class="c1">#: Number of channels for each classifier (or for record-only mode)</span>
+    <span class="n">num_channels</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                                <span class="n">desc</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;number of channels for each classifier &#39;</span>
+                                      <span class="s1">&#39;(or in general for record-only mode)&#39;</span><span class="p">))</span>
+
+    <span class="c1">#: Number of classifiers</span></div>
     <span class="n">num_classifiers</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CInt</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;number of classifiers&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="OdinEmbeddedClassifier"><a class="viewcode-back" href="../../index.html#classiflib.dtypes.OdinEmbeddedClassifier">[docs]</a><span class="k">class</span> <span class="nc">OdinEmbeddedClassifier</span><span class="p">(</span><span class="n">Schema</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;General classifier settings for Odin embedded mode.&quot;&quot;&quot;</span>
+    <span class="c1">#: Subject code</span>
     <span class="n">subject</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CBytes</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;subject code&#39;</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+    <span class="c1">#: Averaging interval in ms</span>
     <span class="n">averaging_interval</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;averaging interval in ms&#39;</span><span class="p">)</span>
+
+    <span class="c1">#: Refractory period in ms</span>
     <span class="n">refractory_period</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;refractory period in ms&#39;</span><span class="p">)</span>
-    <span class="n">threshold</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;stim threshold in dB&#39;</span><span class="p">)</span>
+
+    <span class="c1">#: Stim threshold</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;stim threshold&#39;</span><span class="p">)</span>
+
+    <span class="c1">#: Stim duration in ms</span>
     <span class="n">stim_duration</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;stim duration in ms&#39;</span><span class="p">)</span>
-    <span class="n">waveform_name</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CBytes</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;associated waveform name&#39;</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span></div>
+
+    <span class="c1">#: Waveform name (should be of the form ``&lt;stim_channel_name&gt;_wfm``)</span>
+    <span class="n">waveform_name</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CBytes</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;associated waveform name&#39;</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+
+    <span class="c1">#: Stim channel name</span></div>
     <span class="n">stim_channel_name</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CBytes</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;associated stim channel name&#39;</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="OdinEmbeddedChannel"><a class="viewcode-back" href="../../index.html#classiflib.dtypes.OdinEmbeddedChannel">[docs]</a><span class="k">class</span> <span class="nc">OdinEmbeddedChannel</span><span class="p">(</span><span class="n">Schema</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Odin embedded mode channel specifications.&quot;&quot;&quot;</span>
+    <span class="c1">#: Subject code</span>
     <span class="n">subject</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CBytes</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;subject code&#39;</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+    <span class="c1">#: Sense channel label</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">CBytes</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s2">&quot;sense channel label&quot;</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+
+    <span class="c1">#: Mean values per frequency</span>
     <span class="n">means</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,),</span>
                          <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;raw means values per frequency&#39;</span><span class="p">)</span>
+
+    <span class="c1">#: Standard deviations per frequency</span>
     <span class="n">sigmas</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,),</span>
                           <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;raw standard deviations per frequency&#39;</span><span class="p">)</span>
+
+    <span class="c1">#: Weights per frequency</span>
     <span class="n">weights</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Array</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,),</span></div>
                            <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;weights per frequency&#39;</span><span class="p">)</span>
 </pre></div>
@@ -289,7 +320,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.1.0',
+            VERSION:'1.2.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

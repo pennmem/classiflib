@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>classiflib &mdash; classiflib 1.1.0 documentation</title>
+  <title>classiflib &mdash; classiflib 1.2.0 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="classiflib 1.1.0 documentation" href="#"/> 
+    <link rel="top" title="classiflib 1.2.0 documentation" href="#"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.1
+                1.2
               </div>
             
           
@@ -228,18 +228,114 @@ serializability.</p>
 <dt id="classiflib.dtypes.OdinEmbeddedMeta">
 <em class="property">class </em><code class="descclassname">classiflib.dtypes.</code><code class="descname">OdinEmbeddedMeta</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/classiflib/dtypes.html#OdinEmbeddedMeta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedMeta" title="Permalink to this definition">¶</a></dt>
 <dd><p>OdinEmbeddedMeta info that can be stored in a schema bundle.</p>
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedMeta.num_channels">
+<code class="descname">num_channels</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedMeta.num_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of channels for each classifier (or for record-only mode)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedMeta.num_classifiers">
+<code class="descname">num_classifiers</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedMeta.num_classifiers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of classifiers</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedMeta.subject">
+<code class="descname">subject</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedMeta.subject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subject code</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedMeta.timestamp">
+<code class="descname">timestamp</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedMeta.timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time of creation</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="classiflib.dtypes.OdinEmbeddedClassifier">
 <em class="property">class </em><code class="descclassname">classiflib.dtypes.</code><code class="descname">OdinEmbeddedClassifier</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/classiflib/dtypes.html#OdinEmbeddedClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedClassifier" title="Permalink to this definition">¶</a></dt>
 <dd><p>General classifier settings for Odin embedded mode.</p>
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedClassifier.averaging_interval">
+<code class="descname">averaging_interval</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedClassifier.averaging_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Averaging interval in ms</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedClassifier.refractory_period">
+<code class="descname">refractory_period</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedClassifier.refractory_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refractory period in ms</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedClassifier.stim_channel_name">
+<code class="descname">stim_channel_name</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedClassifier.stim_channel_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stim channel name</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedClassifier.stim_duration">
+<code class="descname">stim_duration</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedClassifier.stim_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stim duration in ms</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedClassifier.subject">
+<code class="descname">subject</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedClassifier.subject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subject code</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedClassifier.threshold">
+<code class="descname">threshold</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedClassifier.threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stim threshold</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedClassifier.waveform_name">
+<code class="descname">waveform_name</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedClassifier.waveform_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Waveform name (should be of the form <code class="docutils literal notranslate"><span class="pre">&lt;stim_channel_name&gt;_wfm</span></code>)</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="classiflib.dtypes.OdinEmbeddedChannel">
 <em class="property">class </em><code class="descclassname">classiflib.dtypes.</code><code class="descname">OdinEmbeddedChannel</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/classiflib/dtypes.html#OdinEmbeddedChannel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedChannel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Odin embedded mode channel specifications.</p>
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedChannel.label">
+<code class="descname">label</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedChannel.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sense channel label</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedChannel.means">
+<code class="descname">means</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedChannel.means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean values per frequency</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedChannel.sigmas">
+<code class="descname">sigmas</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedChannel.sigmas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard deviations per frequency</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedChannel.subject">
+<code class="descname">subject</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedChannel.subject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subject code</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="classiflib.dtypes.OdinEmbeddedChannel.weights">
+<code class="descname">weights</code><em class="property"> = None</em><a class="headerlink" href="#classiflib.dtypes.OdinEmbeddedChannel.weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights per frequency</p>
+</dd></dl>
+
 </dd></dl>
 
 <p>Rather than using <code class="xref py py-class docutils literal notranslate"><span class="pre">classiflib.ClassifierContainer</span></code>, use
@@ -253,7 +349,9 @@ serializability.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>channels</strong> (<em>List</em><em>[</em><a class="reference internal" href="#classiflib.dtypes.OdinEmbeddedChannel" title="classiflib.dtypes.OdinEmbeddedChannel"><em>dtypes.OdinEmbeddedChannel</em></a><em>]</em>) – Channel specifications. Must have 1-32 defined.</li>
+<li><strong>channels</strong> (<em>List</em><em>[</em><em>List</em><em>[</em><a class="reference internal" href="#classiflib.dtypes.OdinEmbeddedChannel" title="classiflib.dtypes.OdinEmbeddedChannel"><em>dtypes.OdinEmbeddedChannel</em></a><em>]</em><em>]</em>) – Channel specifications. Each entry is a list of channels associated with
+each classifier (or just a list of channels for record-only mode). There
+must be 1-32 channels defined.</li>
 <li><strong>classifiers</strong> (<em>List</em><em>[</em><a class="reference internal" href="#classiflib.dtypes.OdinEmbeddedClassifier" title="classiflib.dtypes.OdinEmbeddedClassifier"><em>dtypes.OdinEmbeddedClassifier</em></a><em>]</em>) – Classifier specifications. Must have 0 (record-only mode), 1, or 2.</li>
 <li><strong>timestamp</strong> (<em>float</em><em> or </em><em>None</em>) – Timestamp or None to use the current time.</li>
 </ul>
@@ -436,7 +534,9 @@ exist.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>channels</strong> (<em>List</em><em>[</em><a class="reference internal" href="#classiflib.dtypes.OdinEmbeddedChannel" title="classiflib.dtypes.OdinEmbeddedChannel"><em>dtypes.OdinEmbeddedChannel</em></a><em>]</em>) – Channel specifications. Must have 1-32 defined.</li>
+<li><strong>channels</strong> (<em>List</em><em>[</em><em>List</em><em>[</em><a class="reference internal" href="#classiflib.dtypes.OdinEmbeddedChannel" title="classiflib.dtypes.OdinEmbeddedChannel"><em>dtypes.OdinEmbeddedChannel</em></a><em>]</em><em>]</em>) – Channel specifications. Each entry is a list of channels associated with
+each classifier (or just a list of channels for record-only mode). There
+must be 1-32 channels defined.</li>
 <li><strong>classifiers</strong> (<em>List</em><em>[</em><a class="reference internal" href="#classiflib.dtypes.OdinEmbeddedClassifier" title="classiflib.dtypes.OdinEmbeddedClassifier"><em>dtypes.OdinEmbeddedClassifier</em></a><em>]</em>) – Classifier specifications. Must have 0 (record-only mode), 1, or 2.</li>
 <li><strong>timestamp</strong> (<em>float</em><em> or </em><em>None</em>) – Timestamp or None to use the current time.</li>
 </ul>
@@ -499,7 +599,7 @@ exist.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.1.0',
+            VERSION:'1.2.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
