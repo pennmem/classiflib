@@ -71,32 +71,61 @@ timing_window = np.dtype([
 
 class OdinEmbeddedMeta(Schema):
     """OdinEmbeddedMeta info that can be stored in a schema bundle."""
+    #: Subject code
     subject = traits.CBytes(desc='subject code', maxlen=16)
+
+    #: Time of creation
     timestamp = traits.CFloat(desc='unix timestamp')
+
+    #: Number of channels for each classifier (or for record-only mode)
     num_channels = traits.Array(dtype=int,
                                 desc=('number of channels for each classifier '
                                       '(or in general for record-only mode)'))
+
+    #: Number of classifiers
     num_classifiers = traits.CInt(desc='number of classifiers')
 
 
 class OdinEmbeddedClassifier(Schema):
     """General classifier settings for Odin embedded mode."""
+    #: Subject code
     subject = traits.CBytes(desc='subject code', maxlen=16)
+
+    #: Averaging interval in ms
     averaging_interval = traits.Int(desc='averaging interval in ms')
+
+    #: Refractory period in ms
     refractory_period = traits.Int(desc='refractory period in ms')
-    threshold = traits.Int(desc='stim threshold in dB')
+
+    #: Stim threshold
+    threshold = traits.Int(desc='stim threshold')
+
+    #: Stim duration in ms
     stim_duration = traits.Int(desc='stim duration in ms')
+
+    #: Waveform name (should be of the form ``<stim_channel_name>_wfm``)
     waveform_name = traits.CBytes(desc='associated waveform name', maxlen=32)
+
+    #: Stim channel name
     stim_channel_name = traits.CBytes(desc='associated stim channel name', maxlen=32)
 
 
 class OdinEmbeddedChannel(Schema):
     """Odin embedded mode channel specifications."""
+    #: Subject code
     subject = traits.CBytes(desc='subject code', maxlen=16)
+
+    #: Sense channel label
     label = traits.CBytes(desc="sense channel label", maxlen=32)
+
+    #: Mean values per frequency
     means = traits.Array(dtype=np.int16, shape=(8,),
                          desc='raw means values per frequency')
+
+    #: Standard deviations per frequency
     sigmas = traits.Array(dtype=np.int16, shape=(8,),
                           desc='raw standard deviations per frequency')
+
+    #: Weights per frequency
     weights = traits.Array(dtype=np.float64, shape=(8,),
                            desc='weights per frequency')
