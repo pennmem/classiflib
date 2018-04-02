@@ -21,6 +21,7 @@ requirements:
     - scikit-learn
     - setuptools
     - traits
+    - traitschema>=1.2
 
   run:
     - python {{ python }}
@@ -28,6 +29,7 @@ requirements:
     - h5py
     - scikit-learn
     - traits
+    - traitschema>=1.2
     # - vs2015_runtime  [win]
 
 test:

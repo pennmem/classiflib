@@ -13,6 +13,7 @@ try:
 except OSError:
     pass
 
-build_cmd = "conda build conda.recipe --output-folder build/"
+build_cmd = "conda build -c pennmem conda.recipe --output-folder build/"
 print(build_cmd)
 check_call(build_cmd, shell=True)
+
