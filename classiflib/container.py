@@ -209,42 +209,45 @@ class OdinEmbeddedClassifierContainer(object):
     """
     def __init__(self, channels, classifiers, timestamp=None):
         # validate lengths
-        if not 0 < len(channels) <= 2:
-            raise IndexError("you must specify 1-2 sets of channels")
         if not 0 <= len(classifiers) <= 2:
             raise IndexError("you must specify 0-2 classifiers")
-        for channelset in channels:
-            if not 0 < len(channelset) <= 32:
-                raise IndexError("you must specify 1-32 channels per classifier")
+        if not 0 < len(channels) <= 32:
+            raise IndexError("you must specify 1-32 channels")
 
         # ensure subjects match in all
-        subject = channels[0][0].subject
-        for channelset in channels:
-            for ch in channelset:
-                assert ch.subject == subject
-            for cl in classifiers:
-                assert cl.subject == subject
+        subject = channels[0].subject
+        for channel in channels:
+            assert channel.subject == subject
+        for classifier in classifiers:
+            assert classifier.subject == subject
 
         self.channels = channels
         self.classifiers = classifiers
 
-        num_channels = [len(channelset) for channelset in self.channels]
-
         self.meta = dtypes.OdinEmbeddedMeta(
             subject=subject,
             timestamp=(timestamp or time.time()),
-            num_channels=num_channels,
+            num_channels=len(self.channels),
             num_classifiers=len(self.classifiers)
         )
+
+    def __str__(self):
+        return "<OdinEmbeddedClassifierContainer({}, {} classifiers, {} channels)>".format(
+            self.subject, len(self.classifiers), len(self.channels)
+        )
+
+    def __repr__(self):
+        return self.__str__()
 
     def __eq__(self, other):
         if not self.classifiers == other.classifiers:
             return False
+
         if not self.meta.timestamp == other.meta.timestamp:
             return False
 
-        for i, channelset in enumerate(self.channels):
-            if not channelset == other.channels[i]:
+        for i, channel in enumerate(self.channels):
+            if not channel == other.channels[i]:
                 return False
 
         return True
@@ -264,18 +267,15 @@ class OdinEmbeddedClassifierContainer(object):
 
         schema = {'meta': self.meta}
 
-        for i in range(max(len(self.classifiers), 1)):
-            try:
-                schema.update({
-                    'classifier{}'.format(i): self.classifiers[i]
-                })
-            except IndexError:
-                pass
+        schema.update({
+            'classifier{}'.format(i): classifier
+            for i, classifier in enumerate(self.classifiers)
+        })
 
-            schema.update({
-                'classifier{}_ch{}'.format(i, j): channel
-                for j, channel in enumerate(self.channels[i])
-            })
+        schema.update({
+            'ch{}'.format(i): channel
+            for i, channel in enumerate(self.channels)
+        })
 
         bundle_schema(filename, schema)
 
@@ -286,13 +286,7 @@ class OdinEmbeddedClassifierContainer(object):
         num_channels = schema['meta'].num_channels
         num_classifiers = schema['meta'].num_classifiers
 
-        channels = []
-        for i in range(max(num_classifiers, 1)):
-            channels.append([
-                schema['classifier{}_ch{}'.format(i, j)]
-                for j in range(num_channels[i])
-            ])
-
+        channels = [schema['ch{}'.format(i)] for i in range(num_channels)]
         classifiers = [schema['classifier{}'.format(i)] for i in range(num_classifiers)]
 
         return cls(channels, classifiers, schema['meta'].timestamp)

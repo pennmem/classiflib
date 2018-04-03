@@ -127,14 +127,13 @@ class TestOdinEmbeddedContainer:
                 subject=subject,
                 label='chan{}'.format(i).encode('ascii'),
                 means=np.zeros(8, dtype=np.int16),
-                sigmas=np.zeros(8, dtype=np.int16),
-                weights=np.random.random(8),
+                sigmas=np.zeros(8, dtype=np.int16)
             )
             for i in range(count)
         ]
 
     @staticmethod
-    def make_classifiers(subject, count):
+    def make_classifiers(subject, count, num_channels):
         return [
             dtypes.OdinEmbeddedClassifier(
                 subject=subject,
@@ -144,6 +143,7 @@ class TestOdinEmbeddedContainer:
                 stim_duration=500,
                 waveform_name='wvfm{}'.format(i).encode('ascii'),
                 stim_channel_name='chan{}'.format(i).encode('ascii'),
+                weights=np.random.uniform(0, 1, (num_channels, 8))
             )
             for i in range(count)
         ]
@@ -163,12 +163,12 @@ class TestOdinEmbeddedContainer:
             OdinEmbeddedClassifierContainer(channels, classifiers)
 
         # too many classifiers
-        classifiers = self.make_classifiers(subject, 3)
+        classifiers = self.make_classifiers(subject, 3, 32)
         with pytest.raises(IndexError):
             OdinEmbeddedClassifierContainer(channels, classifiers)
 
         # within limits
-        channels = [self.make_channels(subject, 32)]
+        channels = self.make_channels(subject, 32)
         classifiers.pop()
         oecc = OdinEmbeddedClassifierContainer(channels, classifiers)
 
@@ -178,15 +178,16 @@ class TestOdinEmbeddedContainer:
             assert ch == oecc.channels[i]
 
         for i, cl in enumerate(classifiers):
+            # we have to test these separately because the custom trait for
+            # weight validation makes the usual Schema.__eq__ fail...
             assert cl == oecc.classifiers[i]
 
     @pytest.mark.parametrize('num_classifiers', [0, 1, 2])
     def test_save_load(self, tmpdir, num_classifiers):
         subject = b'R0001X'
 
-        num_channelsets = num_classifiers if num_classifiers > 0 else 1
-        channels = [self.make_channels(subject, 32) for _ in range(num_channelsets)]
-        classifiers = self.make_classifiers(subject, num_classifiers)
+        channels = self.make_channels(subject, 32)
+        classifiers = self.make_classifiers(subject, num_classifiers, len(channels))
         filename = str(tmpdir.join('classifier.zip'))
         cc = OdinEmbeddedClassifierContainer(channels, classifiers)
         cc.save(filename)
