@@ -1,6 +1,15 @@
 Changes
 =======
 
+Version 1.3.0
+-------------
+
+**Unreleased**
+
+* Rearranged ``OdinEmbeddedClassifierContainer`` once again to have channels as
+  a simple list and moved weights data from channels to classifiers (#14)
+
+
 Version 1.2.0
 -------------
 
