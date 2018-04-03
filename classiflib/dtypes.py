@@ -112,6 +112,16 @@ class OdinEmbeddedClassifier(Schema):
     #: Weights per channel per frequency (shape: ``channels x 8``)
     weights = OdinEmbeddedWeights(desc='weights per channel per frequency')
 
+    def __eq__(self, other):
+        return self.subject == other.subject \
+            and self.averaging_interval == other.averaging_interval \
+            and self.refractory_period == other.refractory_period \
+            and self.threshold == other.threshold \
+            and self.stim_duration == other.stim_duration \
+            and self.waveform_name == other.waveform_name \
+            and self.stim_channel_name == other.stim_channel_name \
+            and (self.weights == other.weights).all()
+
 
 class OdinEmbeddedChannel(Schema):
     """Odin embedded mode channel specifications."""

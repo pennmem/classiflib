@@ -180,13 +180,7 @@ class TestOdinEmbeddedContainer:
         for i, cl in enumerate(classifiers):
             # we have to test these separately because the custom trait for
             # weight validation makes the usual Schema.__eq__ fail...
-            assert cl.subject == oecc.classifiers[i].subject
-            assert cl.averaging_interval == oecc.classifiers[i].averaging_interval
-            assert cl.refractory_period == oecc.classifiers[i].refractory_period
-            assert cl.threshold == oecc.classifiers[i].threshold
-            assert cl.stim_duration == oecc.classifiers[i].stim_duration
-            assert cl.stim_channel_name == oecc.classifiers[i].stim_channel_name
-            assert_equal(cl.weights, oecc.classifiers[i].weights)
+            assert cl == oecc.classifiers[i]
 
     @pytest.mark.parametrize('num_classifiers', [0, 1, 2])
     def test_save_load(self, tmpdir, num_classifiers):
@@ -199,6 +193,4 @@ class TestOdinEmbeddedContainer:
         cc.save(filename)
 
         other = OdinEmbeddedClassifierContainer.load(filename)
-
-        assert cc.channels == other.channels
-        assert cc.meta == other.meta
+        assert cc == other

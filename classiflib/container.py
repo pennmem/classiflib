@@ -234,6 +234,7 @@ class OdinEmbeddedClassifierContainer(object):
     def __eq__(self, other):
         if not self.classifiers == other.classifiers:
             return False
+
         if not self.meta.timestamp == other.meta.timestamp:
             return False
 
