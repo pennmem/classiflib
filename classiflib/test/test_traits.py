@@ -4,7 +4,7 @@ from numpy.testing import assert_equal
 from traits.api import HasTraits
 from traits.trait_errors import TraitError
 
-from classiflib.traits import *
+from classiflib._traits import *
 
 
 class Thing(HasTraits):

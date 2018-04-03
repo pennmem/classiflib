@@ -4,7 +4,7 @@ import numpy as np
 import traits.api as traits
 from traitschema import Schema
 
-from .traits import OdinEmbeddedWeights
+from ._traits import OdinEmbeddedWeights
 
 
 def with_id(dtype, typestr='<i8', name='id'):
