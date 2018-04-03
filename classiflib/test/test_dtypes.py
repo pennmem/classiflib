@@ -25,17 +25,17 @@ def test_make_timing_window():
 class TestEmbeddedDtypes:
     def test_oe_classifier(self):
         OdinEmbeddedClassifier(
-            averaging_interval=1366,
+            averaging_interval=1000,
             refractory_period=1000,
-            threshold=1,
+            threshold=1000,
             waveform_name=b'wvfm1',
-            stim_channel_name=b'LTC1LTC2'
+            stim_channel_name=b'LTC1LTC2',
+            weights=np.random.uniform(0, 1, (10, 8))
         )
 
     def test_oe_channel(self):
         OdinEmbeddedChannel(
             label=b'LA1LA2',
             means=np.linspace(0, 8, 8, dtype=np.int16),
-            sigmas=np.linspace(0, 8, 8, dtype=np.int16),
-            weights=np.random.random((8,))
+            sigmas=np.linspace(0, 8, 8, dtype=np.int16)
         )
