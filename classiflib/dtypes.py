@@ -1,7 +1,5 @@
 """Defines reusable dtypes for recarrays and HDF5 tables."""
 
-import time
-
 import numpy as np
 import traits.api as traits
 from traitschema import Schema
@@ -79,7 +77,7 @@ class OdinEmbeddedMeta(Schema):
     subject = traits.CBytes(desc='subject code', maxlen=16)
 
     #: Time of creation
-    timestamp = traits.Instance(float, time.time, desc='unix timestamp')
+    timestamp = traits.CFloat(desc='unix timestamp')
 
     #: Number of embedded channels
     num_channels = traits.CInt(desc='number of channels')
