@@ -1,37 +1,42 @@
 language: generic
 
-env:
-  - PYTHON_VERSION="3.5"
-  - PYTHON_VERSION="3.6"
-  - PYTHON_VERSION="3.7"
+python:
+  - "3.11"
+
+os: linux
+dist: bionic
 
 notifications:
   email: false
 
-# conda setup copied from the conda docs
-install:
+before_install:
   - sudo apt-get update
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [[ "$PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda create -q -n test-environment python=$PYTHON_VERSION numpy pandas h5py scikit-learn
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION conda-build anaconda-client
+
+install:
   - source activate test-environment
-  - pip install -r requirements.txt
   - conda install -c pennmem traitschema
-  - python setup.py install
+  - pip install -r requirements.txt
+  - python maint/build.py
+  - conda install --use-local $(find build/linux-64 -type f -name "*.tar.bz2" | head -n1)
 
 script:
   - python -m pytest
 
 after_success:
   - codecov
+
+deploy:
+  - provider: script
+    script: maint/deploy.sh
+    on: 
+      tags: true
+    skip_cleanup: true
+
