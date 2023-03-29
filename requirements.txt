@@ -1,7 +1,7 @@
+setuptools
 numpy
 h5py
 scikit-learn
-setuptools
 traits
 pytest
 pytest-cov

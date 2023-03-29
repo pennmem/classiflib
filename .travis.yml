@@ -22,8 +22,8 @@ before_install:
 
 install:
   - source activate test-environment
-  - conda install -c pennmem traitschema
   - pip install -r requirements.txt
+  - conda install -c pennmem traitschema
   - python maint/build.py
   - conda install --use-local $(find build/linux-64 -type f -name "*.tar.bz2" | head -n1)
 

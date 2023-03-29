@@ -16,12 +16,15 @@ build:
 requirements:
   build:
     - python {{ python }}
-    - numpy
+    - setuptools
+    - numpy>=1.20
     - h5py
     - scikit-learn
-    - setuptools
     - traits
-    - traitschema>=1.2
+    - traitschema>=1.4
+    - pytest
+    - pytest-cov
+    - codecov
 
   run:
     - python {{ python }}
@@ -29,7 +32,7 @@ requirements:
     - h5py
     - scikit-learn
     - traits
-    - traitschema>=1.2
+    - traitschema>=1.4
     # - vs2015_runtime  [win]
 
 test:
