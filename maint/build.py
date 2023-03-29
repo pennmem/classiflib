@@ -32,7 +32,7 @@ def clean():
 
 def build():
     """Build conda packages."""
-    build_cmd = "conda build conda.recipe --output-folder build/"
+    build_cmd = "conda build conda.recipe -c pennmem --output-folder build/"
     print(build_cmd)
     check_call(shlex.split(build_cmd))
 
