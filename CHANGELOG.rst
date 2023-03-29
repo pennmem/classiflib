@@ -1,6 +1,16 @@
 Changes
 =======
 
+Version 1.4.0
+-------------
+
+**2023-03-29**
+
+* Added support for python 3.11
+* Removed support for all other python versions
+* Added automatic testing and deployment to github with travis
+
+
 Version 1.3.0
 -------------
 
