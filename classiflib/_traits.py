@@ -3,15 +3,15 @@
 import numpy as np
 from numpy.testing import assert_equal
 
-from traits.api import Generic
+from traits.api import Any
 
 
-class OdinEmbeddedWeights(Generic):
+class OdinEmbeddedWeights(Any):
     default_value = np.zeros((1, 8))
 
     def validate(self, obj, name, value):
         if isinstance(value, np.ndarray):
-            if value.dtype == np.float:
+            if value.dtype == float:
                 if len(value.shape) == 2:
                     if value.shape[1] == 8:
                         return value

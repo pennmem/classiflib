@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import assert_equal
 
 from sklearn.linear_model import LogisticRegression
-from sklearn.externals import joblib
+import joblib
 
 from classiflib import dtypes, FRDefaults
 from classiflib.container import ClassifierContainer, OdinEmbeddedClassifierContainer

@@ -11,7 +11,7 @@ import pytest
 
 from sklearn import __version__ as sklearn_version
 from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.externals import joblib
+import joblib
 
 from classiflib import dtypes, __version__
 from classiflib.classifier import CLASSIFIER_VERSION
@@ -64,8 +64,9 @@ class DummyClassifier(LogisticRegression):
 
 
 class TestBaseSerializer:
-    def setup_method(self, method):
-        self.serializer = BaseSerializer(DummyClassifier(), [(0, 1, 'A0', 'A1')], mean_powers())
+    @pytest.fixture(autouse=True)
+    def setup_method_fixture(self, mean_powers):
+        self.serializer = BaseSerializer(DummyClassifier(), [(0, 1, 'A0', 'A1')], mean_powers)
 
     def test_pairs_validation(self, single_pair):
         self.serializer._validate_pairs(single_pair)
@@ -77,19 +78,18 @@ class TestBaseSerializer:
 
         self.serializer._validate_pairs(ipairs)
 
-    def test_classifier_validation(self, mean_powers):
+    def test_classifier_validation(self, mean_powers, single_pair):
         class BadClassifier(object):
             pass
 
         with pytest.raises(AssertionError):
-            BaseSerializer(BadClassifier(), single_pair(), mean_powers)
+            BaseSerializer(BadClassifier(), single_pair, mean_powers)
 
         with pytest.raises(AssertionError):
-            BaseSerializer(SGDClassifier, single_pair(), mean_powers)
+            BaseSerializer(SGDClassifier, single_pair, mean_powers)
 
-    def test_weights(self, mean_powers):
-        pairs = single_pair()
-        serializer = BaseSerializer(DummyClassifier(), pairs, mean_powers)
+    def test_weights(self, mean_powers, single_pair):
+        serializer = BaseSerializer(DummyClassifier(), single_pair, mean_powers)
         weights = serializer.weights
         assert hasattr(weights, 'pair_id')
         assert hasattr(weights, 'frequency')
@@ -106,8 +106,8 @@ class TestBaseSerializer:
 
 
 class TestPickleSerializer:
-    def test_serialize(self, tmpdir, mean_powers):
-        serializer = PickleSerializer(DummyClassifier(), single_pair(), mean_powers)
+    def test_serialize(self, tmpdir, mean_powers, single_pair):
+        serializer = PickleSerializer(DummyClassifier(), single_pair, mean_powers)
 
         outfile = tmpdir.join('out.pkl').strpath
         serializer.serialize(outfile)
@@ -132,14 +132,12 @@ class TestPickleSerializer:
     def test_deserialize(self):
         pass
 
-
 class TestHDF5Serializer:
-    def setup_method(self, method):
+    @pytest.fixture(autouse=True)
+    def setup_method_fixture(self, mean_powers, single_pair):
         self.classifier = DummyClassifier()
-        self.pairs = single_pair()
-        self.mean_powers = mean_powers()
-        self.serializer = HDF5Serializer(self.classifier, self.pairs,
-                                         self.mean_powers, subject='guido')
+        self.serializer = HDF5Serializer(self.classifier, single_pair,
+                                         mean_powers, subject='guido')
 
     @contextmanager
     def hfile(self):
@@ -158,13 +156,16 @@ class TestHDF5Serializer:
         with self.hfile() as hfile:
             hfile['/group/a'] = scalar
             hfile['/group/b'] = matrix
-            hfile['/group/string'] = ['string'.encode()]
+            hfile['/group/byteString'] = ['byteString'] 
+            hfile['/group/string'] = np.array(['string'], dtype='S')
 
         with self.hopen() as hfile:
             d = self.serializer._group_to_dict(hfile, 'group')
-            assert d['a'] == scalar
+            assert_equal(d['a'], scalar)
             assert_equal(d['b'], matrix)
-            assert d['string'] == 'string'
+            assert_equal(d['byteString'], [b'byteString'])
+            assert_equal(d['byteString'].astype('U'), ['byteString'])
+            assert_equal(d['string'], 'string')
 
     def test_add_attributes(self):
         with self.hfile() as hfile:
@@ -203,19 +204,19 @@ class TestHDF5Serializer:
                 assert row['label0'] == 'A{}'.format(i).encode()
                 assert row['label1'] == 'A{}'.format(i + 1).encode()
 
-    def test_add_powers(self):
+    def test_add_powers(self, mean_powers):
         with self.hfile() as hfile:
             self.serializer.add_features(hfile)
 
         with self.hopen() as hfile:
-            assert_equal(hfile['/classifier/features'][:], self.mean_powers)
+            assert_equal(hfile['/classifier/features'][:], mean_powers)
 
-    def test_add_classifier(self):
+    def test_add_classifier(self, single_pair):
         roc = np.array([np.linspace(0, 1, 100), np.linspace(0, 1, 100)])
         classifier = DummyClassifier()
         classifier.coef_ = np.random.random((1, 16))
         powers = np.random.random((1000, 2*8))
-        serializer = HDF5Serializer(classifier, single_pair() + single_pair(),
+        serializer = HDF5Serializer(classifier, single_pair + single_pair,
                                     powers, roc=roc, auc=0.5)
 
         with self.hfile() as hfile:
@@ -235,10 +236,10 @@ class TestHDF5Serializer:
             intercept = hfile['/classifier/intercept'][0]
             assert intercept == 0.
 
-    def test_add_training(self):
+    def test_add_training(self, single_pair):
         features = np.random.random((1000, 8))
         events = np.random.random(len(features))
-        serializer = HDF5Serializer(DummyClassifier(), single_pair(), features,
+        serializer = HDF5Serializer(DummyClassifier(), single_pair, features,
                                     events=events)
 
         with self.hfile() as hfile:
@@ -249,13 +250,13 @@ class TestHDF5Serializer:
 
     @pytest.mark.parametrize('dtype', ['list', 'recarray'])
     @pytest.mark.parametrize('overwrite', [True, False])
-    def test_serialize(self, dtype, overwrite, single_pair):
+    def test_serialize(self, dtype, overwrite, mean_powers, single_pair):
         if dtype == 'list':
             pairs = single_pair
         else:
             pairs = np.rec.fromrecords(single_pair, dtype=dtypes.pairs)
 
-        s = HDF5Serializer(self.classifier, pairs, self.mean_powers)
+        s = HDF5Serializer(self.classifier, pairs, mean_powers)
 
         if not overwrite:
             with open('out.h5', 'w') as f:
@@ -273,7 +274,7 @@ class TestHDF5Serializer:
         with pytest.raises(AssertionError):
             self.serializer.serialize(BytesIO())
 
-    def test_deserialize(self):
+    def test_deserialize(self, mean_powers, single_pair):
         self.serializer.serialize('out.h5')
 
         container = self.serializer.deserialize('out.h5')
@@ -290,17 +291,17 @@ class TestHDF5Serializer:
         assert_equal(container.weights['value'], self.classifier.coef_[0])
         assert container.intercept == self.classifier.intercept_
 
-        pairs = np.rec.fromrecords(self.pairs, dtype=dtypes.pairs)
+        pairs = np.rec.fromrecords(single_pair, dtype=dtypes.pairs)
         assert_equal(container.pairs.contact0, pairs.contact0)
         assert_equal(container.pairs.contact1, pairs.contact1)
         assert_equal(container.pairs.label0, pairs.label0)
         assert_equal(container.pairs.label1, pairs.label1)
 
-        assert_equal(container.features, self.mean_powers)
+        assert_equal(container.features, mean_powers)
         assert_equal(container.frequencies, self.serializer.frequencies)
 
 
-def test_zip_serializer(events):
+def test_zip_serializer(events, mean_powers, single_pair):
     import os
 
     try:
@@ -309,7 +310,7 @@ def test_zip_serializer(events):
         pass
 
     classifier = DummyClassifier()
-    serializer = ZipSerializer(classifier, single_pair(), mean_powers(),
+    serializer = ZipSerializer(classifier, single_pair, mean_powers,
                                events=events)
     serializer.serialize('out.zip', overwrite=True)
 

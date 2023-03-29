@@ -12,7 +12,7 @@ import numpy as np
 import h5py
 from sklearn import __version__ as sklearn_version
 from sklearn.linear_model import LogisticRegression
-from sklearn.externals import joblib
+import joblib
 
 from . import __version__, dtypes
 from .dtypes import with_id
@@ -300,12 +300,12 @@ class HDF5Serializer(BaseSerializer):
         group = hfile[groupname]
         d = {}
         for member in group:
-            if isinstance(group[member].value, h5py.Empty):
+            if isinstance(group[member][()], h5py.Empty):
                 d[member] = None
             elif group[member].dtype.char == 'S':
                 d[member] = group[member][0].decode()
             else:
-                d[member] = group[member].value
+                d[member] = group[member][()]
         return d
 
     def addstring(self, group, name, value, dtype='|S64'):
@@ -412,12 +412,12 @@ class HDF5Serializer(BaseSerializer):
 
             return ClassifierContainer(
                 classifier=classifier,
-                pairs=hfile['/pairs'].value,
-                features=hfile['/classifier/features'].value,
-                events=hfile['/classifier/training/events'].value,
-                sample_weight=hfile['/classifier/training/sample_weight'].value,
-                weights=hfile['/classifier/weights'].value,
-                intercept=hfile['/classifier/intercept'].value,
+                pairs=hfile['/pairs'][()],
+                features=hfile['/classifier/features'][()],
+                events=hfile['/classifier/training/events'][()],
+                sample_weight=hfile['/classifier/training/sample_weight'][()],
+                weights=hfile['/classifier/weights'][()],
+                intercept=hfile['/classifier/intercept'][()],
                 classifier_info=classifier_info,
                 versions=HDF5Serializer._group_to_dict(hfile, '/versions'),
                 timestamp=hfile.attrs['timestamp']
